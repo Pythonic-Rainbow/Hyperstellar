@@ -4,14 +4,14 @@ We have members living in timezones from GMT-8 all the way to GMT+11. We are of 
 It is time for a proper standard. This doesn't apply to war leagues.
 
 ## Before war search
-Members are responsible for opting in/out before the next war search. Once you're in, you're part of the fleet and responsible to attack. **It's ok to opt in even if you plan to/are upgrading your heroes**
+Members are responsible for opting in/out before the next war search. Once you're in, you're part of the fleet and responsible to attack. **It's ok to opt-in even if you are upgrading your heroes or plan to do so.**
 
 ## Prep day
 ### By default, your target is your opposite.
-You can swap targets with members positioned +-3 in the fleet during this period, but it must be agreed by the member.
-* For example if you're no7 and upgrading your heroes, you might want to attack a lower target, swapping with 8-10.
+You can swap targets with members positioned +-3 in the fleet during this period, but it must be agreed upon by the member.
+* For example if you're no7 and upgrading your heroes, you might want to attack a lower target by swapping with 8-10.
 
-You can voluntarily give up an **alt**'s attacks but you must ask a +-3 to take over your opposite. Their 2nd will be treated as a 1st. You might still need to backup later. In that case both attacks are considered 2nd, with the target assigned by the co-leader.
+You can voluntarily give up an **alt**'s attacks but you must ask a +-3 to take over your opposite. Their 2nd will be treated as a 1st. You might still need to backup later. In that case both attacks are considered 2nd, and the target will be assigned by the co-leader.
 
 You're advised to claim the target.
 
@@ -25,13 +25,13 @@ You attack your target within the first 12h.
 You can claim a feasible target for **backup** after using your 1st attack.
 
 ## Second attack
-**!!DON'T USE IT IN THE FIRST 12H!!** This ensures a fair gameplay experience between all players.
+**!!DON'T USE IT IN THE FIRST 12H!!** This ensures a fair gameplay experience for all players.
 
 You can NOT attack opponents that:
-* Has a note
-* Claimed by a member who *used their 1st attack*.
+* Have a note
+* Have been claimed by a member who *used their 1st attack*.
 
-Other than that, you can attack any feasible opponents. If all feasible opponents are 3\*ed, you can give up or attack anyone.
+Other than that, you can attack any feasible opponents. If all feasible opponents have been 3\*ed, you can either give up or attack anyone.
 
 You can attack anyone when there's only 1h left.
 
@@ -39,4 +39,4 @@ You can attack anyone when there's only 1h left.
 Violating any rules twice (3 for members not in the discord) in a week results in a ban from cw.  
 All target changes must be accepted by the member to be effective.
 
-Depending on the progress, I'll allow certain members to use their 2nd earlier.
+Depending on the progress, I may allow certain members to use their 2nd earlier.
