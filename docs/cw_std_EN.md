@@ -1,5 +1,5 @@
 # Clan War Standard
-We have members living in timezones from GMT-8 all the way to GMT+11. We attack at a different pace. We have different development plans for our main base. We have different level of passion in this game.
+We have members living in timezones from GMT-8 all the way to GMT+11. We are of different ethnicities. We attack at a different pace. We have different development plans for our main base. We have different level of passion in this game.
 
 It is time for a proper standard. This doesn't apply to war leagues.
 
