@@ -25,7 +25,7 @@ You attack your target within the first 12h.
 You can claim a feasible target for **backup** after using your 1st attack.
 
 ## Second attack
-**__!!DON'T USE IT IN THE FIRST 12H!!__** This ensures a fair gameplay experience between all players.
+**!!DON'T USE IT IN THE FIRST 12H!!** This ensures a fair gameplay experience between all players.
 
 You can NOT attack opponents that:
 * Has a note
