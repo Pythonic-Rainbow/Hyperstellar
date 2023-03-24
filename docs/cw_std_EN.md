@@ -24,6 +24,8 @@ You attack your target within the first 12h.
 
 You can claim a feasible target for **backup** after using your 1st attack.
 
+If you failed to use your 1st attack in time, both attacks will be considered 2nd, but you still need to attack the target if it's not 3\*.
+
 ## Second attack
 **!!DON'T USE IT IN THE FIRST 12H!!** This ensures a fair gameplay experience for all players.
 
