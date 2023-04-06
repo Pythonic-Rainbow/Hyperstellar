@@ -94,7 +94,7 @@ add_fd('Arkyo', 'Sabeel', discord='Sabeel')
 add_fd('有錢你就是神', '加油')
 add_fd('Sherlock', 'Stellar')
 add_fd('Arisaka', 'Lukas', discord='Zhao')
-add_fd('TooLazy', 'wendaDolken')
+add_alt('TooLazy', 'wendaDolken')
 
 
 layout = nx.kamada_kawai_layout(g)
