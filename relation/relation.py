@@ -4,7 +4,7 @@ import matplotlib.patches as patches
 import math
 import sys
 
-plt.figure(dpi=90) 
+plt.figure(figsize=(17.5, 15), dpi=60) 
 
 # NetworkX is gay. Extracted from nx.draw(), allows always maximize plot
 ax = plt.gcf().add_axes((0, 0, 1, 1))
@@ -113,4 +113,4 @@ plt.legend(handles=(r_patch, b_patch, bl_patch, g_patch, p_patch))
 if len(sys.argv) == 2 and sys.argv[1] == 'save':
     plt.savefig('Figure_1.png')
 else:
-    plt.show()  # Trigg
+    plt.show()
