@@ -96,7 +96,6 @@ add_fd('有錢你就是神', '加油')
 add_fd('Sherlock', 'Stellar')
 add_fd('Arisaka', 'Lukas', discord='Zhao')
 add_alt('TooLazy', 'wendaDolken')
-add_alt('TooLazy', 'Me')
 
 
 layout = nx.kamada_kawai_layout(g)
