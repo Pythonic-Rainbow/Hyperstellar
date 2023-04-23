@@ -2,6 +2,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import math
+import sys
 
 plt.figure(dpi=90) 
 
@@ -109,4 +110,7 @@ bl_patch = patches.Patch(color='black', label='Left')
 g_patch = patches.Patch(color='g', label='Nickname')
 p_patch = patches.Patch(color='purple', label='Discord')
 plt.legend(handles=(r_patch, b_patch, bl_patch, g_patch, p_patch))
-plt.show()
+if len(sys.argv) == 2 and sys.argv[1] == 'save':
+    plt.savefig('Figure_1.png')
+else:
+    plt.show()
