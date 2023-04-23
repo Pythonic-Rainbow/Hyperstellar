@@ -15,8 +15,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 2
       - name: Check if graph is updated
         uses: tj-actions/changed-files@v35
         id: filter
