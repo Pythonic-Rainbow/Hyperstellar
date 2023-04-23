@@ -4,7 +4,7 @@ import matplotlib.patches as patches
 import math
 import sys
 
-plt.figure(figsize=(17.5, 15), dpi=60) 
+plt.figure(figsize=(12, 12), dpi=70) 
 
 # NetworkX is gay. Extracted from nx.draw(), allows always maximize plot
 ax = plt.gcf().add_axes((0, 0, 1, 1))
@@ -103,7 +103,7 @@ nx.draw_networkx(g, pos=layout, node_size=250, edge_color=[g[u][v]['color'] for 
 nx.draw_networkx_labels(g, pos=layout)
 nx.draw_networkx_labels(g, pos=layout, labels={k: v['aka'] for k,v in g.nodes.items()}, font_color='green', font_weight='heavy')
 nx.draw_networkx_labels(g, pos=layout, labels={k: v['discord'] for k,v in g.nodes.items()}, font_color='#9100ff', font_weight='heavy')
-plt.rcParams['font.sans-serif']= 'Microsoft JhengHei', 'Segoe UI Emoji' # Show Chinese label
+plt.rcParams['font.sans-serif']= 'WenQuanYi Micro Hei', 'Noto Color Emoji', 'Microsoft JhengHei', 'Segoe UI Emoji' # Show Chinese label
 r_patch = patches.Patch(color='r', label='Friend')
 b_patch = patches.Patch(color='b', label='Alt')
 bl_patch = patches.Patch(color='black', label='Left')
