@@ -17,8 +17,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 2
-      - name : Pre hash
-        run: sha1sum 'relation/Figure_1.png'
       - name: Check if graph is updated
         uses: tj-actions/changed-files@v35
         id: filter
@@ -38,8 +36,6 @@ jobs:
         run: |
           cd relation
           python relation.py save
-      - name : After hash
-        run: sha1sum 'relation/Figure_1.png'
       - name: Upload graph
         if: steps.filter.outputs.any_changed == 'false'
         uses: stefanzweifel/git-auto-commit-action@v4
