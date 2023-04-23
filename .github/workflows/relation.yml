@@ -19,6 +19,7 @@ jobs:
         uses: tj-actions/changed-files@v35
         id: filter
         with:
+          since_last_remote_commit: 'true'
           files: 'relation/Figure_1.png'
       - name: Install fonts
         run: sudo apt-get install ttf-wqy-microhei 
