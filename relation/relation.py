@@ -4,7 +4,7 @@ import matplotlib.patches as patches
 import math
 import sys
 
-plt.figure(figsize=(12, 12), dpi=70) 
+plt.figure(figsize=(20, 12), dpi=60) 
 
 # NetworkX is gay. Extracted from nx.draw(), allows always maximize plot
 ax = plt.gcf().add_axes((0, 0, 1, 1))
