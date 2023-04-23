@@ -113,4 +113,4 @@ plt.legend(handles=(r_patch, b_patch, bl_patch, g_patch, p_patch))
 if len(sys.argv) == 2 and sys.argv[1] == 'save':
     plt.savefig('Figure_1.png')
 else:
-    plt.show()#
+    plt.show()
