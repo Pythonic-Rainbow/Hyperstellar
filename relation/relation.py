@@ -103,7 +103,7 @@ nx.draw_networkx(g, pos=layout, node_size=250, edge_color=[g[u][v]['color'] for 
 nx.draw_networkx_labels(g, pos=layout)
 nx.draw_networkx_labels(g, pos=layout, labels={k: v['aka'] for k,v in g.nodes.items()}, font_color='green', font_weight='heavy')
 nx.draw_networkx_labels(g, pos=layout, labels={k: v['discord'] for k,v in g.nodes.items()}, font_color='#9100ff', font_weight='heavy')
-plt.rcParams['font.sans-serif']= 'WenQuanYi Micro Hei', 'Noto Color Emoji', 'Microsoft JhengHei', 'Segoe UI Emoji' # Show Chinese label
+plt.rcParams['font.sans-serif']= 'WenQuanYi Micro Hei', 'Noto Color Emoji', 'Microsoft JhengHei', 'Segoe UI Emoji'
 r_patch = patches.Patch(color='r', label='Friend')
 b_patch = patches.Patch(color='b', label='Alt')
 bl_patch = patches.Patch(color='black', label='Left')

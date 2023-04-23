@@ -16,12 +16,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Check if graph is updated
-        uses: dorny/paths-filter@v2
+        uses: tj-actions/changed-files@v35
         id: filter
         with:
-          filters: |
-            graph:
-              - 'relation/Figure_1.png'
+          files: 'relation/Figure_1.png'
+      - name: Install fonts
+        run: sudo apt-get install ttf-wqy-microhei 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -35,7 +35,7 @@ jobs:
           cd relation
           python relation.py save
       - name: Upload graph
-        if: steps.filter.outputs.graph == 'false'
+        if: steps.filter.outputs.any_changed == 'false'
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Auto generate relation graph by Workflow
