@@ -1,4 +1,4 @@
-name: relation.py
+name: TEST
 on: workflow_dispatch
 
 jobs:      
