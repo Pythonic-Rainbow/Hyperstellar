@@ -1,8 +1,8 @@
+import sys
+
 import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import math
-import sys
 
 plt.figure(figsize=(20, 12), dpi=60) 
 
@@ -96,6 +96,8 @@ add_fd('有錢你就是神', '加油')
 add_fd('Sherlock', 'Stellar')
 add_fd('Arisaka', 'Lukas', discord='Zhao')
 add_alt('TooLazy', 'wendaDolken')
+add_unknown('zasmoker', discord='Xav')
+add_alt('zasmoker', 'real carti')
 
 
 layout = nx.kamada_kawai_layout(g)
