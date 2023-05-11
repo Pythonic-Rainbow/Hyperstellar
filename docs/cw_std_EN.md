@@ -22,6 +22,8 @@ You attack your target within the first 12h.
 * War starts in the midnight/morning: Attack before you go to school/start your day
 * In the noon/evening: Attack before you sleep.
 
+If you think your alt can 3\* your main's opposite, you can use your alt to attack it and the original target. Both attacks will count as 1st, while **both of your main attacks will be 2nd**
+
 You can claim a feasible target for **backup** after using your 1st attack.
 
 If you failed to use your 1st attack in time, both attacks will be considered 2nd, but you still need to attack the target if it's not 3\*.
