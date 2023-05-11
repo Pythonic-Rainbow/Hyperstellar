@@ -4,15 +4,12 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-plt.figure(figsize=(20, 12), dpi=60) 
-
-# NetworkX is gay. Extracted from nx.draw(), allows always maximize plot
-ax = plt.gcf().add_axes((0, 0, 1, 1))
-
-
 RENDER_LEFT = True
 
 
+
+plt.figure(figsize=(20, 12), dpi=60)
+ax = plt.gcf().add_axes((0, 0, 1, 1))  # NetworkX is gay. Extracted from nx.draw(), allows always maximize plot
 g = nx.Graph()
 
 def process_params(aka, discord):
@@ -24,12 +21,15 @@ def process_params(aka, discord):
         discord = '\n\n'*counter + discord
     return aka, discord
 
-def add_single(a, aka='', discord=''):
+def add_single(a, aka='', discord='', recruit=False):
     aka, discord = process_params(aka, discord)
-    g.add_node(a, aka=aka, discord=discord)
+    if recruit:
+        g.add_node(a, aka=aka, discord=discord, color='aqua')
+    else:
+        g.add_node(a, aka=aka, discord=discord)
 
-def add_unknown(a, aka='', discord=''):
-    add_single(a, aka, discord)
+def add_unknown(a, recruit, aka='', discord=''):
+    add_single(a, aka, discord, recruit)
     g.add_edge('Arkyo', a, color='white', weight=5)
 
 def add_fd(a, b, aka='', discord='', color='red'):
@@ -45,13 +45,13 @@ if RENDER_LEFT:
     def add_left(a, b, aka='', discord=''):
         add_fd(a, b, aka=aka, discord=discord, color='black')
 else:
-    def add_left(a, b):
+    def add_left(a, b, aka='', discord=''):
         pass
 
 
 add_single('Arkyo', aka='Dim', discord='ねねSniffer')
-add_unknown('kelvin')
-add_unknown('早点睡')
+add_unknown('kelvin', False)
+add_unknown('早点睡', False)
 add_fd('Arkyo', '有錢你就是神', aka='Billy', discord='changbilly')
 add_alt('有錢你就是神', '香蕉爬來爬去')
 add_fd('錢就是王法', 'Meow')
@@ -64,7 +64,7 @@ add_fd('Arkyo', 'Legend of Birds', aka='Terry', discord='TerryTNT')
 add_fd('Arkyo', 'Slamdunk', aka='Sam', discord='Atlas')
 add_fd('Arkyo', 'bazil', discord='meraki')
 add_fd('bazil', 'Sherlock', discord='Cali-Anthenics')
-add_fd('有錢你就是神', '雪兒')
+add_fd('有錢你就是神', '雪儿')
 add_alt('有錢你就是神', '沒錢人的遊戲🌚')
 add_alt('有錢你就是神', 'timtim')
 add_fd('錢就是王法', 'justin')
@@ -96,13 +96,13 @@ add_fd('有錢你就是神', '加油')
 add_fd('Sherlock', 'Stellar')
 add_fd('Arisaka', 'Lukas', discord='Zhao')
 add_alt('TooLazy', 'wendaDolken')
-add_unknown('destroy lonely', discord='Xav')
-add_alt('destroy lonely', 'real carti')
-add_unknown('HUNTER', discord='yangyang')
+add_unknown('real carti', True, discord='Xav')
+add_unknown('HUNTER', True, discord='yangyang')
 
 
 layout = nx.kamada_kawai_layout(g)
-nx.draw_networkx(g, pos=layout, node_size=250, edge_color=[g[u][v]['color'] for u,v in g.edges()], ax=ax)
+node_colors = [node['color'] if 'color' in node else '#1f78b4' for node in g.nodes.values()]
+nx.draw_networkx(g, pos=layout, node_size=250, node_color=node_colors, edge_color=[g[u][v]['color'] for u,v in g.edges()], ax=ax)
 nx.draw_networkx_labels(g, pos=layout)
 nx.draw_networkx_labels(g, pos=layout, labels={k: v['aka'] for k,v in g.nodes.items()}, font_color='green', font_weight='heavy')
 nx.draw_networkx_labels(g, pos=layout, labels={k: v['discord'] for k,v in g.nodes.items()}, font_color='#9100ff', font_weight='heavy')
@@ -112,7 +112,8 @@ b_patch = patches.Patch(color='b', label='Alt 小号')
 bl_patch = patches.Patch(color='black', label='Left 已离开')
 g_patch = patches.Patch(color='g', label='Nickname 昵称')
 p_patch = patches.Patch(color='purple', label='Discord')
-plt.legend(handles=(r_patch, b_patch, bl_patch, g_patch, p_patch))
+aqua_patch = patches.Patch(color='aqua', label='Recruit 招募')
+plt.legend(handles=(r_patch, b_patch, bl_patch, aqua_patch, g_patch, p_patch))
 if len(sys.argv) == 2 and sys.argv[1] == 'save':
     plt.savefig('Figure_1.png')
 else:
