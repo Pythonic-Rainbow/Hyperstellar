@@ -96,7 +96,7 @@ add_fd('有錢你就是神', '加油')
 add_fd('Sherlock', 'Stellar')
 add_fd('Arisaka', 'Lukas', discord='Zhao')
 add_alt('TooLazy', 'wendaDolken')
-add_unknown('real carti', True, discord='Xav')
+# add_unknown('real carti', True, discord='Xav')
 add_unknown('HUNTER', True, discord='yangyang')
 
 
