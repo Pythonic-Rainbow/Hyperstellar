@@ -99,8 +99,8 @@ add_alt('TooLazy', 'wendaDolken')
 # add_unknown('real carti', True, discord='Xav')
 add_unknown('狂徒', True, discord='yangyang')
 add_fd('FrenchFriezy', 'no.', discord='Canadian')
-add_fd('Arkyo', 'EggTAT', discord='EggTAT')
-add_fd('grace', 'jimeow')
+add_fd('Arkyo', 'EggTAT')
+add_fd('dogge', 'jimeow')
 
 
 layout = nx.kamada_kawai_layout(g)
