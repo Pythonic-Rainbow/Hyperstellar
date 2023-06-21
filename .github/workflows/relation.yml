@@ -3,9 +3,6 @@ on:
   push:
     paths:
       - 'relation/relation.py'
-  pull_request:
-    paths:
-      - 'relation/relation.py'
   pull_request_target:
     paths:
       - 'relation/relation.py'
