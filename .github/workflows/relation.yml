@@ -1,6 +1,8 @@
 name: relation.py
 on:
   push:
+    branches:
+      - main
     paths:
       - 'relation/relation.py'
   pull_request_target:
