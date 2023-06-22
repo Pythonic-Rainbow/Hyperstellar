@@ -103,6 +103,7 @@ add_fd('Arkyo', 'EggTAT')
 add_fd('dogge', 'jimeow')
 
 
+
 layout = nx.kamada_kawai_layout(g)
 node_colors = [node['color'] if 'color' in node else '#1f78b4' for node in g.nodes.values()]
 nx.draw_networkx(g, pos=layout, node_size=250, node_color=node_colors, edge_color=[g[u][v]['color'] for u,v in g.edges()], ax=ax)
