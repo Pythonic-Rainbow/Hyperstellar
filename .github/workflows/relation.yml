@@ -21,12 +21,6 @@ jobs:
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.head_ref }}
-      - name: Check if graph is updated
-        uses: tj-actions/changed-files@v35
-        id: filter
-        with:
-          since_last_remote_commit: 'true'
-          files: 'relation/Figure_1.png'
       - name: Install fonts
         run: sudo apt-get install ttf-wqy-microhei 
       - name: Set up Python
@@ -42,7 +36,6 @@ jobs:
           cd relation
           python relation.py save
       - name: Upload graph
-        if: steps.filter.outputs.any_changed == 'false'
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Auto generate relation graph by Workflow
