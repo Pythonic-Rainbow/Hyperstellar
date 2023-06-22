@@ -5,7 +5,8 @@ on:
       - main
     paths:
       - 'relation/relation.py'
-  pull_request_target:
+  pull_request:
+    types: [opened, synchronize]
     paths:
       - 'relation/relation.py'
 
