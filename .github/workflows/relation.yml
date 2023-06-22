@@ -1,12 +1,12 @@
 name: relation.py
 on:
   push:
+    branches:
+      - main
     paths:
       - 'relation/relation.py'
   pull_request:
-    paths:
-      - 'relation/relation.py'
-  pull_request_target:
+    types: [opened, synchronize]
     paths:
       - 'relation/relation.py'
 
