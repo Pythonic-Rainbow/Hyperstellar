@@ -102,6 +102,7 @@ add_fd('FrenchFriezy', 'no.', discord='Canadian')
 add_fd('Arkyo', 'EggTAT')
 add_fd('dogge', 'jimeow')
 add_alt('雪儿', 'Christine')
+add_fd('Sherlock', 'Tissuepaper', discord='Tissuepaper')
 
 
 layout = nx.kamada_kawai_layout(g)
