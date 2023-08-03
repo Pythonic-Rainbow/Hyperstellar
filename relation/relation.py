@@ -49,7 +49,7 @@ else:
         pass
 
 
-add_single('Arkyo', aka='Dim', discord='ねねSniffer')
+add_single('Arkyo', aka='Dim', discord='Dim')
 add_unknown('kelvin', False)
 add_unknown('早点睡', False)
 add_fd('Arkyo', '有錢你就是神', aka='Billy', discord='changbilly')
@@ -72,7 +72,7 @@ add_fd('Arkyo', 'DragonWarrior', aka='Kingsman', discord='Kingsman')
 add_fd('DragonWarrior', 'Sigma 30')
 add_fd('Arkyo', 'Arisaka', aka='Lok', discord='Ahlok')
 add_fd('Arisaka', '過期方包', aka='Bread', discord='Breeaad')
-add_fd('Arkyo', 'WT', discord='MF')
+# add_fd('Arkyo', 'WT', discord='MF')
 add_fd('Issac', '金剛大好', aka='Mickey', discord='Reiin')
 add_fd('Arkyo', 'FrenchFriezy', aka='Matt', discord='FrenchFriezy')
 # add_alt('DragonWarrior', 'dont attack me')
@@ -99,10 +99,11 @@ add_alt('TooLazy', 'wendaDolken')
 # add_unknown('real carti', True, discord='Xav')
 # add_unknown('狂徒', True, discord='yangyang')
 add_fd('FrenchFriezy', 'no.', discord='Canadian')
-add_fd('Arkyo', 'EggTAT')
+add_fd('Arkyo', 'EggTAT', discord='EggTAT')
 add_fd('dogge', 'jimeow')
 add_alt('雪儿', 'Christine')
 add_fd('Sherlock', 'Tissuepaper', discord='Tissuepaper')
+add_fd('FrenchFriezy', 'Meep')
 
 
 layout = nx.kamada_kawai_layout(g)
