@@ -103,7 +103,8 @@ add_fd('Arkyo', 'EggTAT', discord='EggTAT')
 add_fd('dogge', 'jimeow')
 add_alt('雪儿', 'Christine')
 add_fd('Sherlock', 'Tissuepaper', discord='Tissuepaper')
-add_fd('FrenchFriezy', 'Meep')
+add_fd('FrenchFriezy', 'Meep', discord='OneSummerBreeze')
+add_unknown('unlegitbruh', False)
 
 
 layout = nx.kamada_kawai_layout(g)
