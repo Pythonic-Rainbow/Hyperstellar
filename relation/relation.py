@@ -106,7 +106,8 @@ add_fd('Sherlock', 'Tissuepaper', discord='Tissuepaper')
 add_fd('FrenchFriezy', 'Meep', discord='OneSummerBreeze')
 add_unknown('unlegitbruh', False)
 add_alt('unlegitbruh', 'unlegitbruh²')
-add_alt('unlegitbruh', 'unlegit')
+add_alt('unlegitbruh', 'unlegitbruh³')
+add_fd('Tissuepaper', 'duckss')
 
 
 layout = nx.kamada_kawai_layout(g)
