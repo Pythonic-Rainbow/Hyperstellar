@@ -1,11 +1,11 @@
 # This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: .NET
+name: Compile bot
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "debug-workflow" ]
   pull_request:
     branches: [ "main" ]
 
@@ -23,12 +23,12 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
-    - name: Restore dependencies
-      run: dotnet restore
     - name: Build
-      run: dotnet build -a linux-arm64 --no-restore
-    - name: Upload dotnet test results
+      run: dotnet publish -c Release -r linux-arm64 --no-self-contained
+    - name: Upload program
       uses: actions/upload-artifact@v3
       with:
         name: Bot
-        path: .
+        path: |
+          Bot/bin/Release/net8.0/linux-arm64/Bot
+          Bot/bin/Release/net8.0/linux-arm64/*.dll
