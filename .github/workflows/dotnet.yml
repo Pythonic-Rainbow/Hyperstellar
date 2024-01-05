@@ -5,7 +5,7 @@ name: .NET
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "debug-workflow" ]
   pull_request:
     branches: [ "main" ]
 
@@ -23,11 +23,9 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
-    - name: Restore dependencies
-      run: dotnet restore
     - name: Build
-      run: dotnet build -a linux-arm64 --no-restore
-    - name: Upload dotnet test results
+      run: dotnet build -c Release -r linux-arm64
+    - name: Upload program
       uses: actions/upload-artifact@v3
       with:
         name: Bot
