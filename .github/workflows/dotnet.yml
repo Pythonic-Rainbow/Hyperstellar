@@ -24,9 +24,11 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Build
-      run: dotnet build -c Release -r linux-arm64
+      run: dotnet publish -c Release -r linux-arm64 --no-self-contained
     - name: Upload program
       uses: actions/upload-artifact@v3
       with:
         name: Bot
-        path: .
+        path: |
+          bin/Release/net8.0/linux-arm64/Bot
+          bin/Release/net8.0/linux-arm64/*.dll
