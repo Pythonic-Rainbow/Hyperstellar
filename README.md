@@ -3,7 +3,5 @@
 ## 👇Clan War Standard 部落战标准规定
 [English](docs/cw_std_EN.md)    [中文](docs/cw_std_CN.md)
 
-## [👉Clan member relations graph 部落成员关系图](https://raw.githubusercontent.com/Pythonic-Rainbow/coc-clan/main/relation/Figure_1.png)
-
 ## 👇Donation Guidelines 捐兵指引
 [English](docs/donation_EN.md)    [中文](docs/donation_CN.md)
