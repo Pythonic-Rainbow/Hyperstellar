@@ -6,29 +6,43 @@ namespace Hyperstellar;
 internal class Coc
 {
 
-    internal readonly struct DonationTuple(int donated, int received)
+    internal readonly struct DonationTuple
     {
-        internal readonly int Donated = donated;
-        internal readonly int Received = received;
+        internal readonly int Donated;
+        internal readonly int Received;
+
+        public DonationTuple(int donated, int received)
+        {
+            Donated = donated;
+            Received = received;
+        }
     }
 
-    internal readonly struct ClanMemberInfo(string name, DonationTuple donation)
+    internal readonly struct ClanMemberInfo
     {
-        internal readonly string Name = name;
-        internal readonly DonationTuple Donation = donation;
+        internal readonly string Name;
+        internal readonly DonationTuple Donation;
+
+        public ClanMemberInfo(string name, DonationTuple donation)
+        {
+            Name = name;
+            Donation = donation;
+        }
+
         internal readonly int Donated => Donation.Donated;
         internal readonly int Received => Donation.Received;
     }
 
     private readonly struct ClanInfo
     {
-        internal readonly Dictionary<string, ClanMemberInfo> Members = [];
+        internal readonly Dictionary<string, ClanMemberInfo> Members = new();
 
         public ClanInfo(Clan clan)
         {
             foreach (var member in clan.MemberList!)
             {
-                Members[member.Tag] = new(member.Name, new(member.Donations, member.DonationsReceived));
+                DonationTuple donation = new(member.Donations, member.DonationsReceived);
+                Members[member.Tag] = new(member.Name, donation);
             }
         }
     }
@@ -50,7 +64,7 @@ internal class Coc
 
     private static async Task CheckDonations(ClanInfo clan, Clan c)
     {
-        Dictionary<string, DonationTuple> donationsDelta = [];
+        Dictionary<string, DonationTuple> donationsDelta = new();
         foreach (var memberTag in clan.Members.Keys)
         {
             bool existsInPrevClan = _prevClan.Members.TryGetValue(memberTag, out ClanMemberInfo previous);
