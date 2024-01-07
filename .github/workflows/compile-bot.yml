@@ -22,7 +22,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 8.0.x
     - name: Build
       run: dotnet publish -c Release -r linux-arm64 --no-self-contained
     - name: Upload program
@@ -30,7 +30,6 @@ jobs:
       with:
         name: Bot
         path: |
-          Bot/bin/Release/net6.0/linux-arm64/Bot
-          Bot/bin/Release/net6.0/linux-arm64/*.dll
-          Bot/bin/Release/net6.0/linux-arm64/*.json
-          Bot/bin/Relesae/net6.0/linux-arm64/runtimes/linux-arm64/native/*
+          Bot/bin/Release/net8.0/linux-arm64/Bot
+          Bot/bin/Release/net8.0/linux-arm64/*.dll
+          Bot/bin/Release/net8.0/linux-arm64/*.json

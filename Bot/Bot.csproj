@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>Hyperstellar</RootNamespace>
@@ -18,17 +18,4 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
-  <ItemGroup>
-    <RuntimeHostConfigurationOption Include="System.Globalization.AppLocalIcu" Value="72.1.0.3" />
-    <PackageReference Include="Microsoft.ICU.ICU4C.Runtime" Version="72.1.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <IcuAssemblies Include="icu\*.so*" />
-    <RuntimeTargetsCopyLocalItems Include="@(IcuAssemblies)" AssetType="native" CopyLocal="true"
-      DestinationSubDirectory="runtimes/linux-arm64/native/" DestinationSubPath="%(FileName)%(Extension)"
-      RuntimeIdentifier="linux-arm64" NuGetPackageId="System.Private.Runtime.UnicodeData" />
-  </ItemGroup>
-
 </Project>
