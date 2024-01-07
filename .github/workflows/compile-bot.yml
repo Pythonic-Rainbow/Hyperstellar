@@ -32,3 +32,4 @@ jobs:
         path: |
           Bot/bin/Release/net6.0/linux-arm64/Bot
           Bot/bin/Release/net6.0/linux-arm64/*.dll
+          Bot/bin/Release/net6.0/linux-arm64/*.json
