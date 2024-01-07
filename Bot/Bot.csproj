@@ -24,4 +24,11 @@
     <PackageReference Include="Microsoft.ICU.ICU4C.Runtime" Version="72.1.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <IcuAssemblies Include="icu\*.so*" />
+    <RuntimeTargetsCopyLocalItems Include="@(IcuAssemblies)" AssetType="native" CopyLocal="true"
+      DestinationSubDirectory="runtimes/linux-arm64/native/" DestinationSubPath="%(FileName)%(Extension)"
+      RuntimeIdentifier="linux-arm64" NuGetPackageId="System.Private.Runtime.UnicodeData" />
+  </ItemGroup>
+
 </Project>
