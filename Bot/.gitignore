@@ -5,6 +5,8 @@
 
 secrets.json
 Hyperstellar.db
+Hyperstellar
+hyperstellar-token.txt
 
 # User-specific files
 *.rsuser
