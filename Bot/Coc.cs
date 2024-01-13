@@ -1,4 +1,4 @@
-﻿using ClashOfClans;
+using ClashOfClans;
 using ClashOfClans.Models;
 
 namespace Hyperstellar;
@@ -6,50 +6,41 @@ namespace Hyperstellar;
 internal class Coc
 {
 
-    internal readonly struct DonationTuple
+    internal readonly struct DonationTuple(int donated, int received)
     {
-        internal readonly int Donated;
-        internal readonly int Received;
-
-        public DonationTuple(int donated, int received)
-        {
-            Donated = donated;
-            Received = received;
-        }
+        internal readonly int Donated = donated;
+        internal readonly int Received = received;
     }
 
-    internal readonly struct ClanMemberInfo
+    private class ClanUtil
     {
-        internal readonly string Name;
-        internal readonly DonationTuple Donation;
+        internal readonly Dictionary<string, ClanMember> Members = [];
+        internal readonly Clan Clan;
+        internal readonly IEnumerable<ClanMember> existingMembers;
 
-        public ClanMemberInfo(string name, DonationTuple donation)
-        {
-            Name = name;
-            Donation = donation;
-        }
-
-        internal readonly int Donated => Donation.Donated;
-        internal readonly int Received => Donation.Received;
-    }
-
-    private readonly struct ClanInfo
-    {
-        internal readonly Dictionary<string, ClanMemberInfo> Members = new();
-
-        public ClanInfo(Clan clan)
+        public ClanUtil(Clan clan)
         {
             foreach (var member in clan.MemberList!)
             {
-                DonationTuple donation = new(member.Donations, member.DonationsReceived);
-                Members[member.Tag] = new(member.Name, donation);
+                Members[member.Tag] = member;
             }
+            Clan = clan;
+            existingMembers = clan.MemberList!.Intersect(_prevClan.Clan.MemberList!, new MemberComparer());
         }
+    }
+
+    private class MemberComparer : IEqualityComparer<ClanMember>
+    {
+        public bool Equals(ClanMember? x, ClanMember? y) => x!.Tag.Equals(y!.Tag);
+
+        public int GetHashCode(ClanMember obj) => obj.Tag.GetHashCode();
     }
 
     const string CLAN_ID = "#2QU2UCJJC";
     const string DIM_ID = "#28QL0CJV2";
-    private static ClanInfo _prevClan;
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    private static ClanUtil _prevClan;
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     internal static readonly ClashOfClansClient Client = new(Secrets.Coc);
 
     private static async Task<Clan> GetClanAsync() => await Client.Clans.GetClanAsync(CLAN_ID);
@@ -57,24 +48,25 @@ internal class Coc
     private static async Task PollAsync()
     {
         var clan = await GetClanAsync();
-        ClanInfo clanInfo = new(clan);
-        await CheckDonations(clanInfo, clan);
-        _prevClan = clanInfo;
+        if (clan == null) return;
+        if (clan.MemberList == null) return;
+        ClanUtil clanUtil = new(clan);
+        await CheckDonations(clanUtil);
+     
+        _prevClan = clanUtil;
     }
 
-    private static async Task CheckDonations(ClanInfo clan, Clan c)
+    private static async Task CheckDonations(ClanUtil clan)
     {
-        Dictionary<string, DonationTuple> donationsDelta = new();
-        foreach (var memberTag in clan.Members.Keys)
+        Dictionary<string, DonationTuple> donationsDelta = [];
+        var existingMemberTags = clan.existingMembers.Select(x => x.Tag);
+        foreach (var tag in existingMemberTags)
         {
-            bool existsInPrevClan = _prevClan.Members.TryGetValue(memberTag, out ClanMemberInfo previous);
-            if (existsInPrevClan)
+            var current = clan.Members[tag];
+            var previous = _prevClan.Members[tag];
+            if (current.Donations > previous.Donations || current.DonationsReceived > previous.DonationsReceived)
             {
-                ClanMemberInfo current = clan.Members[memberTag];
-                if (current.Donated > previous.Donated || current.Received > previous.Received)
-                {
-                    donationsDelta[current.Name] = new(current.Donated - previous.Donated, current.Received - previous.Received);
-                }
+                donationsDelta[current.Name] = new(current.Donations - previous.Donations, current.DonationsReceived - previous.DonationsReceived);
             }
         }
         if (donationsDelta.Count > 0)
@@ -83,10 +75,7 @@ internal class Coc
         }
     }
 
-    internal static async Task InitAsync()
-    {
-        _prevClan = new(await GetClanAsync());
-    }
+    internal static async Task InitAsync() => _prevClan = new(await GetClanAsync());
 
     internal static async Task BotReadyAsync()
     {

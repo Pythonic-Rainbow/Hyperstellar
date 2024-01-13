@@ -1,11 +1,12 @@
-﻿using Hyperstellar;
-
-public class Program
+﻿namespace Hyperstellar
 {
-    public static async Task Main(string[] args)
+    public class Program
     {
-        await Hyperstellar.Discord.InitAsync();
-        await Coc.InitAsync();
-        await Task.Delay(-1);
+        public static async Task Main()
+        {
+            await Discord.InitAsync();
+            await Coc.InitAsync();
+            await Task.Delay(-1);
+        }
     }
 }

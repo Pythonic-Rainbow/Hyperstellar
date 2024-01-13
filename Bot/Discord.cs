@@ -12,7 +12,7 @@ internal class Discord
     const ulong BOT_LOG_ID = 1099026457268863017;
 #endif
 
-    private static DiscordSocketClient _bot = new();
+    private static readonly DiscordSocketClient _bot = new();
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     private static SocketTextChannel _botLog;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -26,7 +26,7 @@ internal class Discord
     private static Task Ready()
     {
         _botLog = (SocketTextChannel)_bot.GetChannel(BOT_LOG_ID);
-        Task.Run(Coc.BotReadyAsync);
+        Task.Run(BotReadyAsync);
         return Task.CompletedTask;
     }
 
