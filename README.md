@@ -5,3 +5,6 @@
 
 ## 👇Donation Guidelines 捐兵指引
 [English](docs/donation_EN.md)    [中文](docs/donation_CN.md)
+
+---
+*For bot development please see [here](docs/bot.md)*
