@@ -5,6 +5,7 @@
 
 <a name="prerequisites"></a>
 # Prerequisites
+
 1. You need to install Visual Studio with .NET Desktop development workload.
 
     Only the .NET SDK is essential tbh. This project uses .NET 8  
@@ -23,6 +24,7 @@
 
 <a name="overview"></a>
 # Structure Overview
+
 * `Program.cs`: Main class
 * `Secrets.cs`: Loads tokens
 * `Coc.cs`: Module for interacting with CoC API
@@ -42,5 +44,41 @@ For each task run, if it needs to interact with Discord, it will call the approp
 
 <a name="guidelines"></a>
 # Coding Guidelines
+
 1. No variables should be shared between `Discord.cs`, `Coc.cs` and `Db.cs`. If you need functionalities in another module, expose a public method and call it instead.
 2. Access modifiers: If a var/func shouldn't be shared, make it private. If a var/func should be shared, make it public.
+3. SQL: All SQL statements should be executed only in `Sql/`. Same logic as above
+4. How to order things in a class:
+```cs
+/* Nested class/struct etc. */
+private class NestedClass
+{
+    // Everything here should be formated according to this rule again
+}
+
+/* Variables
+ The following shows how to order variables.
+ For naming, see https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/identifier-names */
+ const float EarthGravity = 9.81; // const first
+ // Static vars first, order by access modifiers from private to public
+ private static int s_PRI = 0;
+ public static int PublicStatic = 1;
+ // Single blank line
+
+// Instant vars, also order by access modifiers
+private int _pri = 2;
+public int PublicInt = 3;
+
+/* Constructors: Again, static first */
+static Order() { }
+// If multiple instant constructors: Fewest param count first
+public Order(int param1) { }
+public Order(int param1, int param2) { }
+
+/* Methods: Static first, then by access modifiers, then by Sync/Async */
+private static async Task<string> GetClanNameAsync() { }
+private List<uint> FindFactors(uint number) { }
+private async Task ReportToCIA() { }
+public uint ComputeFactorial(uint number) { }
+public async Task ProcessPayment() { }
+```
