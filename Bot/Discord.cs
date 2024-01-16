@@ -4,7 +4,7 @@ using static Hyperstellar.Coc;
 
 namespace Hyperstellar;
 
-internal class Discord
+internal sealed class Discord
 {
 #if DEBUG
     private const ulong BotLogId = 666431254312517633;
@@ -34,7 +34,7 @@ internal class Discord
     {
         s_bot.Log += Log;
         s_bot.Ready += Ready;
-        await s_bot.LoginAsync(TokenType.Bot, Secrets.Discord);
+        await s_bot.LoginAsync(TokenType.Bot, Secrets.s_discord);
         await s_bot.StartAsync();
     }
 
