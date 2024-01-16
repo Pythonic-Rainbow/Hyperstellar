@@ -11,7 +11,7 @@ internal class Db
         var x = s_db.Table<User>();
         foreach (var y in x)
         {
-            //Console.WriteLine(y.CocId);
+            Console.WriteLine(y.CocId);
         }
     }
 }

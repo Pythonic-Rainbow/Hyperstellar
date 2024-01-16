@@ -15,6 +15,10 @@
     <AnalysisModeNaming>All</AnalysisModeNaming>
     <AnalysisModeGlobalization>None</AnalysisModeGlobalization>
     <AnalysisModeSecurity>All</AnalysisModeSecurity>
+    <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(CompileConfig)' == 'RELEASE'">
     <RunAnalyzersDuringBuild>True</RunAnalyzersDuringBuild>
   </PropertyGroup>
 
