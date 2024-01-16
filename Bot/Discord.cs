@@ -7,14 +7,14 @@ namespace Hyperstellar;
 internal class Discord
 {
 #if DEBUG
-    const ulong BOT_LOG_ID = 666431254312517633;
+    private const ulong BotLogId = 666431254312517633;
 #else
-    const ulong BOT_LOG_ID = 1099026457268863017;
+    const ulong BotLogId = 1099026457268863017;
 #endif
+    private static readonly DiscordSocketClient s_bot = new();
 
-    private static readonly DiscordSocketClient _bot = new();
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    private static SocketTextChannel _botLog;
+    private static SocketTextChannel s_botLog;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
     private static Task Log(LogMessage msg)
@@ -25,24 +25,24 @@ internal class Discord
 
     private static Task Ready()
     {
-        _botLog = (SocketTextChannel)_bot.GetChannel(BOT_LOG_ID);
+        s_botLog = (SocketTextChannel)s_bot.GetChannel(BotLogId);
         Task.Run(BotReadyAsync);
         return Task.CompletedTask;
     }
 
     internal static async Task InitAsync()
     {
-        _bot.Log += Log;
-        _bot.Ready += Ready;
-        await _bot.LoginAsync(TokenType.Bot, Secrets.Discord);
-        await _bot.StartAsync();
+        s_bot.Log += Log;
+        s_bot.Ready += Ready;
+        await s_bot.LoginAsync(TokenType.Bot, Secrets.Discord);
+        await s_bot.StartAsync();
     }
 
     internal static async Task DonationsChangedAsync(Dictionary<string, DonationTuple> donationsDelta)
     {
         string msg = "[DNT] ";
         List<string> items = new(donationsDelta.Count / 2);
-        foreach (var name in donationsDelta.Keys)
+        foreach (string name in donationsDelta.Keys)
         {
             int donated = donationsDelta[name].Donated;
             if (donated > 0)
@@ -53,7 +53,7 @@ internal class Discord
         msg += string.Join(", ", items);
         msg += "\n=> ";
         items.Clear();
-        foreach (var name in donationsDelta.Keys)
+        foreach (string name in donationsDelta.Keys)
         {
             int received = donationsDelta[name].Received;
             if (received > 0)
@@ -62,6 +62,6 @@ internal class Discord
             }
         }
         msg += string.Join(", ", items);
-        await _botLog.SendMessageAsync(msg);
+        await s_botLog.SendMessageAsync(msg);
     }
 }
