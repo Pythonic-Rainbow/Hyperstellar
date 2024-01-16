@@ -62,7 +62,7 @@ jobs:
     - name: Restore
       run: dotnet restore
     - name: Inspect
-      uses: dotnet/code-analysis@v1
+      uses: dotnet/code-analysis@main
       with:
         solution: './Bot.sln'
         build-breaking: true
