@@ -3,9 +3,9 @@ using ClashOfClans.Models;
 
 namespace Hyperstellar;
 
-internal class Coc
+internal sealed class Coc
 {
-    private class ClanUtil
+    private sealed class ClanUtil
     {
         internal readonly Clan _clan;
         internal readonly Dictionary<string, ClanMember> _members = [];
@@ -52,7 +52,7 @@ internal class Coc
     }
 
     private const string ClanId = "#2QU2UCJJC";
-    internal static readonly ClashOfClansClient s_client = new(Secrets.Coc);
+    internal static readonly ClashOfClansClient s_client = new(Secrets.s_coc);
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     private static ClanUtil s_prevClan;
