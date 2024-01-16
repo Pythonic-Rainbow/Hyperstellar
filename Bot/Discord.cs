@@ -9,7 +9,7 @@ internal sealed class Discord
 #if DEBUG
     private const ulong BotLogId = 666431254312517633;
 #else
-    const ulong BotLogId = 1099026457268863017;
+    private const ulong BotLogId = 1099026457268863017;
 #endif
     private static readonly DiscordSocketClient s_bot = new();
 
