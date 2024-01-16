@@ -50,4 +50,4 @@ jobs:
         workingDirectory: './Bot'
         solutionPath: './Bot.sln'
         noBuild: true
-        minimumSeverity: 'warning
+        minimumSeverity: 'warning'
