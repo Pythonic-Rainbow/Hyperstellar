@@ -44,7 +44,7 @@ internal class Discord
         List<string> items = new(donationsDelta.Count / 2);
         foreach (string name in donationsDelta.Keys)
         {
-            int donated = donationsDelta[name].Donated;
+            int donated = donationsDelta[name]._donated;
             if (donated > 0)
             {
                 items.Add($"{name}: {donated}");
@@ -55,7 +55,7 @@ internal class Discord
         items.Clear();
         foreach (string name in donationsDelta.Keys)
         {
-            int received = donationsDelta[name].Received;
+            int received = donationsDelta[name]._received;
             if (received > 0)
             {
                 items.Add($"{name}: {received}");
