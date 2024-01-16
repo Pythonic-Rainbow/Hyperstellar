@@ -59,6 +59,7 @@ private class NestedClass
 /* Variables
  The following shows how to order variables.
  For naming, see https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/identifier-names */
+
  const float EarthGravity = 9.81; // const first
  // Static vars first, order by access modifiers from private to public
  private static int s_PRI = 0;
@@ -66,8 +67,14 @@ private class NestedClass
  // Single blank line
 
 // Instant vars, also order by access modifiers
-private int _pri = 2;
+int _pri = 2;
 public int PublicInt = 3;
+//Single blank line
+
+// CS8618 vars: Ignore nullable warning
+#pragma warning disable CS8618
+// Order here is same as above
+#pragma warning restore CS8618
 
 /* Constructors: Again, static first */
 static Order() { }
@@ -82,3 +89,4 @@ private async Task ReportToCIA() { }
 public uint ComputeFactorial(uint number) { }
 public async Task ProcessPayment() { }
 ```
+5. Make things as restrictive as possible.
