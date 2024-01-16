@@ -49,22 +49,5 @@ jobs:
       with:
         workingDirectory: './Bot'
         solutionPath: './Bot.sln'
-        noBuild: true
+        noBuild: false
         minimumSeverity: 'warning'
-  dotnet-inspect:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: |
-          3.1.x
-          8.0.x
-    - name: Restore
-      run: dotnet restore
-    - name: Inspect
-      uses: dotnet/code-analysis@main
-      with:
-        solution: './Bot.sln'
-        build-breaking: true
