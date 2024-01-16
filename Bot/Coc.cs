@@ -113,7 +113,7 @@ internal class Coc
         while (true)
         {
             await PollAsync();
-            await Task.Delay(4000);
+            await Task.Delay(5000);
         }
     }
 }
