@@ -5,13 +5,6 @@ namespace Hyperstellar;
 
 internal class Coc
 {
-
-    internal readonly struct DonationTuple(int donated, int received)
-    {
-        internal readonly int Donated = donated;
-        internal readonly int Received = received;
-    }
-
     private class ClanUtil
     {
         internal readonly Clan Clan;
@@ -55,15 +48,13 @@ internal class Coc
         }
     }
 
-    private class MemberComparer : IEqualityComparer<ClanMember>
+    internal readonly struct DonationTuple(int donated, int received)
     {
-        public bool Equals(ClanMember? x, ClanMember? y) => x!.Tag.Equals(y!.Tag);
-
-        public int GetHashCode(ClanMember obj) => obj.Tag.GetHashCode();
+        internal readonly int Donated = donated;
+        internal readonly int Received = received;
     }
 
     private const string ClanId = "#2QU2UCJJC";
-    private const string DimId = "#28QL0CJV2";
     internal static readonly ClashOfClansClient s_client = new(Secrets.Coc);
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.

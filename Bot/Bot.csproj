@@ -13,7 +13,6 @@
     <AnalysisMode>Recommended</AnalysisMode>
     <AnalysisModeStyle>All</AnalysisModeStyle>
     <AnalysisModeNaming>All</AnalysisModeNaming>
-    <AnalysisModePerformance>All</AnalysisModePerformance>
     <AnalysisModeGlobalization>None</AnalysisModeGlobalization>
     <AnalysisModeSecurity>All</AnalysisModeSecurity>
   </PropertyGroup>
