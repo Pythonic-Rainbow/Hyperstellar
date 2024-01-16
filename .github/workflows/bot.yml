@@ -49,5 +49,5 @@ jobs:
       with:
         workingDirectory: './Bot'
         solutionPath: './Bot.sln'
-        noBuild: false
+        noBuild: true
         minimumSeverity: 'warning'
