@@ -29,4 +29,5 @@ jobs:
         workingDirectory: './Bot'
         solutionPath: './Bot.sln'
         noBuild: true
+        exclude: '**'
         include: '**.cs'
