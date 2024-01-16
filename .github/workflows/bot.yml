@@ -1,7 +1,7 @@
 # This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: Compile bot
+name: C# bot
 
 on:
   push:
@@ -18,9 +18,8 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
@@ -35,3 +34,13 @@ jobs:
           Bot/bin/Release/net8.0/linux-arm64/Bot
           Bot/bin/Release/net8.0/linux-arm64/*.dll
           Bot/bin/Release/net8.0/linux-arm64/*.json
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Inspect
+      uses: muno92/resharper_inspectcode@v1
+      with:
+        workingDirectory: './Bot'
+        solutionPath: './Bot.sln'
+        noBuild: true

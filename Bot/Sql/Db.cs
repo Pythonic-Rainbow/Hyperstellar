@@ -1,9 +1,8 @@
 ﻿using SQLite;
 
-namespace Hyperstellar.Sql
+namespace Hyperstellar.Sql;
+
+internal class Db
 {
-    internal class Db
-    {
-        private static readonly SQLiteConnection _db = new("Hyperstellar.db");
-    }
+    private static readonly SQLiteConnection _db = new("Hyperstellar.db");
 }
