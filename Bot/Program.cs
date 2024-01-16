@@ -6,6 +6,6 @@ public class Program
     {
         await Discord.InitAsync();
         await Coc.InitAsync();
-        await Task.Delay(1);
+        await Task.Delay(-1);
     }
 }
