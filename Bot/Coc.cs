@@ -20,17 +20,18 @@ internal class Coc
         internal readonly Dictionary<string, ClanMember> JoiningMembers = [];
         internal readonly Dictionary<string, ClanMember> LeavingMembers;
 
-        public ClanUtil(Clan clan)
+        internal ClanUtil(Clan clan)
         {
-            LeavingMembers = _prevClan.Members;
-            foreach (var member in clan.MemberList!)
+            LeavingMembers = s_prevClan.Members;
+            foreach (ClanMember member in clan.MemberList!)
             {
                 Members[member.Tag] = member;
-                if (_prevClan.HasMember(member))
+                if (s_prevClan.HasMember(member))
                 {
                     ExistingMembers[member.Tag] = member;
                     LeavingMembers.Remove(member.Tag);
-                } else
+                }
+                else
                 {
                     JoiningMembers[member.Tag] = member;
                 }
@@ -41,14 +42,17 @@ internal class Coc
         internal ClanUtil(Clan clan, bool init)
         {
             LeavingMembers = [];
-            foreach (var member in clan.MemberList!)
+            foreach (ClanMember member in clan.MemberList!)
             {
                 Members[member.Tag] = member;
             }
             Clan = clan;
         }
 
-        internal bool HasMember(ClanMember member) => Members.ContainsKey(member.Tag);
+        internal bool HasMember(ClanMember member)
+        {
+            return Members.ContainsKey(member.Tag);
+        }
     }
 
     private class MemberComparer : IEqualityComparer<ClanMember>
@@ -58,14 +62,18 @@ internal class Coc
         public int GetHashCode(ClanMember obj) => obj.Tag.GetHashCode();
     }
 
-    const string CLAN_ID = "#2QU2UCJJC";
-    const string DIM_ID = "#28QL0CJV2";
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    private static ClanUtil _prevClan;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    internal static readonly ClashOfClansClient Client = new(Secrets.Coc);
+    private const string ClanId = "#2QU2UCJJC";
+    private const string DimId = "#28QL0CJV2";
+    internal static readonly ClashOfClansClient s_client = new(Secrets.Coc);
 
-    private static async Task<Clan> GetClanAsync() => await Client.Clans.GetClanAsync(CLAN_ID);
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    private static ClanUtil s_prevClan;
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+
+    private static async Task<Clan> GetClanAsync()
+    {
+        return await s_client.Clans.GetClanAsync(ClanId);
+    }
 
     private static async Task PollAsync()
     {
@@ -74,16 +82,16 @@ internal class Coc
         if (clan.MemberList == null) return;
         ClanUtil clanUtil = new(clan);
         await CheckDonations(clanUtil);
-        _prevClan = clanUtil;
+        s_prevClan = clanUtil;
     }
 
     private static async Task CheckDonations(ClanUtil clan)
     {
         Dictionary<string, DonationTuple> donationsDelta = [];
-        foreach (var tag in clan.ExistingMembers.Keys)
+        foreach (string tag in clan.ExistingMembers.Keys)
         {
-            var current = clan.Members[tag];
-            var previous = _prevClan.Members[tag];
+            ClanMember current = clan.Members[tag];
+            ClanMember previous = s_prevClan.Members[tag];
             if (current.Donations > previous.Donations || current.DonationsReceived > previous.DonationsReceived)
             {
                 donationsDelta[current.Name] = new(current.Donations - previous.Donations, current.DonationsReceived - previous.DonationsReceived);
@@ -95,7 +103,10 @@ internal class Coc
         }
     }
 
-    internal static async Task InitAsync() => _prevClan = new(await GetClanAsync(), true);
+    internal static async Task InitAsync()
+    {
+        s_prevClan = new(await GetClanAsync(), true);
+    }
 
     internal static async Task BotReadyAsync()
     {

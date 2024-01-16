@@ -6,10 +6,10 @@ name: Compile bot
 on:
   push:
     branches: [ "main", "debug-workflow" ]
-    paths: ["*.cs"]
+    paths: ["**.cs"]
   pull_request:
     branches: [ "main" ]
-    paths: ["*.cs"]
+    paths: ["**.cs"]
 
 defaults:
  run:
