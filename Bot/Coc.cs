@@ -1,5 +1,6 @@
 using ClashOfClans;
 using ClashOfClans.Models;
+using Hyperstellar.Sql;
 
 namespace Hyperstellar;
 
@@ -7,11 +8,22 @@ internal sealed class Coc
 {
     private sealed class ClanUtil
     {
-        internal readonly Clan _clan;
+        internal Clan _clan;
         internal readonly Dictionary<string, ClanMember> _members = [];
         internal readonly Dictionary<string, ClanMember> _existingMembers = [];
         internal readonly Dictionary<string, ClanMember> _joiningMembers = [];
-        internal readonly Dictionary<string, ClanMember> _leavingMembers;
+        internal Dictionary<string, ClanMember> _leavingMembers;
+
+        internal ClanUtil()
+        {
+            IEnumerable<string> existingMembers = Db.GetMembers();
+            foreach (string member in existingMembers)
+            {
+                _members[member] = new();  // PLACEHOLDER
+            }
+            _clan = new();  // PLACEHOLDER
+            _leavingMembers = [];
+        }
 
         internal ClanUtil(Clan clan)
         {
@@ -22,22 +34,12 @@ internal sealed class Coc
                 if (s_prevClan.HasMember(member))
                 {
                     _existingMembers[member.Tag] = member;
-                    _ = _leavingMembers.Remove(member.Tag);
+                    _leavingMembers.Remove(member.Tag);
                 }
                 else
                 {
                     _joiningMembers[member.Tag] = member;
                 }
-            }
-            _clan = clan;
-        }
-
-        internal ClanUtil(Clan clan, bool init)
-        {
-            _leavingMembers = [];
-            foreach (ClanMember member in clan.MemberList!)
-            {
-                _members[member.Tag] = member;
             }
             _clan = clan;
         }
@@ -53,10 +55,7 @@ internal sealed class Coc
 
     private const string ClanId = "#2QU2UCJJC";
     internal static readonly ClashOfClansClient s_client = new(Secrets.s_coc);
-
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    private static ClanUtil s_prevClan;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    private static ClanUtil s_prevClan = new();
 
     private static async Task<Clan> GetClanAsync() => await s_client.Clans.GetClanAsync(ClanId);
 
@@ -95,8 +94,6 @@ internal sealed class Coc
             await Discord.DonationsChangedAsync(donationsDelta);
         }
     }
-
-    internal static async Task InitAsync() => s_prevClan = new(await GetClanAsync(), true);
 
     internal static async Task BotReadyAsync()
     {
