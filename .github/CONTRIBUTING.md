@@ -82,6 +82,9 @@ static Order() { }
 public Order(int param1) { }
 public Order(int param1, int param2) { }
 
+/* Factory methods */
+public static Order CreateOrder(int param1) { }
+
 /* Methods: Static first, then by access modifiers, then by Sync/Async */
 private static async Task<string> GetClanNameAsync() { }
 private List<uint> FindFactors(uint number) { }

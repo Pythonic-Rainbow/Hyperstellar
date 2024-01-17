@@ -7,4 +7,4 @@
 [English](docs/donation_EN.md)    [中文](docs/donation_CN.md)
 
 ---
-*For bot development please see [here](docs/bot.md)*
+*For bot development please see [here](.github/CONTRIBUTING.md)*
