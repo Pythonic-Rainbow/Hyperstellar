@@ -14,34 +14,54 @@ internal sealed class Coc
         internal readonly Dictionary<string, ClanMember> _joiningMembers = [];
         internal Dictionary<string, ClanMember> _leavingMembers;
 
-        internal ClanUtil()
+        private ClanUtil(Clan clan, Dictionary<string, ClanMember> leavingMembers)
         {
-            IEnumerable<string> existingMembers = Db.GetMembers();
-            foreach (string member in existingMembers)
-            {
-                _members[member] = new();  // PLACEHOLDER
-            }
-            _clan = new();  // PLACEHOLDER
-            _leavingMembers = [];
+            _clan = clan;
+            _leavingMembers = leavingMembers;
         }
 
-        internal ClanUtil(Clan clan)
+        internal static ClanUtil FromInit(Clan clan)
         {
-            _leavingMembers = s_prevClan._members;
+            ClanUtil c = new(clan, []);
+            IEnumerable<string> existingMembers = Db.GetMembers().Select(m => m.CocId);
+            foreach (string dbMember in existingMembers)
+            {
+                bool stillExists = false;
+                foreach (ClanMember clanMember in clan.MemberList!)
+                {
+                    if (clanMember.Tag.Equals(dbMember))
+                    {
+                        c._members[dbMember] = clanMember;
+                        clan.MemberList.Remove(clanMember);
+                        stillExists = true;
+                        break;
+                    }
+                }
+                if (!stillExists)
+                {
+                    c._members[dbMember] = new();  // Fake a member
+                }
+            }
+            return c;
+        }
+
+        internal static ClanUtil FromPoll(Clan clan)
+        {
+            ClanUtil c = new(clan, new(s_prevClan._members));
             foreach (ClanMember member in clan.MemberList!)
             {
-                _members[member.Tag] = member;
+                c._members[member.Tag] = member;
                 if (s_prevClan.HasMember(member))
                 {
-                    _existingMembers[member.Tag] = member;
-                    _leavingMembers.Remove(member.Tag);
+                    c._existingMembers[member.Tag] = member;
+                    c._leavingMembers.Remove(member.Tag);
                 }
                 else
                 {
-                    _joiningMembers[member.Tag] = member;
+                    c._joiningMembers[member.Tag] = member;
                 }
             }
-            _clan = clan;
+            return c;
         }
 
         internal bool HasMember(ClanMember member) => _members.ContainsKey(member.Tag);
@@ -55,7 +75,9 @@ internal sealed class Coc
 
     private const string ClanId = "#2QU2UCJJC";
     internal static readonly ClashOfClansClient s_client = new(Secrets.s_coc);
-    private static ClanUtil s_prevClan = new();
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    private static ClanUtil s_prevClan;
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
     private static async Task<Clan> GetClanAsync() => await s_client.Clans.GetClanAsync(ClanId);
 
@@ -72,12 +94,16 @@ internal sealed class Coc
             return;
         }
 
-        ClanUtil clanUtil = new(clan);
-        await CheckDonations(clanUtil);
+        ClanUtil clanUtil = ClanUtil.FromPoll(clan);
+        CheckMembersJoined(clanUtil);
+        CheckMembersLeft(clanUtil);
+        await Task.WhenAll([
+            CheckDonationsAsync(clanUtil),
+        ]);
         s_prevClan = clanUtil;
     }
 
-    private static async Task CheckDonations(ClanUtil clan)
+    private static async Task CheckDonationsAsync(ClanUtil clan)
     {
         Dictionary<string, DonationTuple> donationsDelta = [];
         foreach (string tag in clan._existingMembers.Keys)
@@ -94,6 +120,44 @@ internal sealed class Coc
             await Discord.DonationsChangedAsync(donationsDelta);
         }
     }
+
+    private static void CheckMembersJoined(ClanUtil clan)
+    {
+        if (clan._joiningMembers.Count > 0)
+        {
+            string[] members = [.. clan._joiningMembers.Keys];
+            bool isSuccess = Db.AddMembers(members);
+            string membersMsg = string.Join(", ", members);
+            if (isSuccess)
+            {
+                Console.WriteLine($"{membersMsg} joined");
+            }
+            else
+            {
+                Console.Error.WriteLine($"ERROR MembersJoined {membersMsg}");
+            }
+        }
+    }
+
+    private static void CheckMembersLeft(ClanUtil clan)
+    {
+        if (clan._leavingMembers.Count > 0)
+        {
+            string[] members = [.. clan._leavingMembers.Keys];
+            bool isSuccess = Db.RemoveMembers(members);
+            string membersMsg = string.Join(", ", members);
+            if (isSuccess)
+            {
+                Console.WriteLine($"{membersMsg} left");
+            }
+            else
+            {
+                Console.Error.WriteLine($"ERROR MembersLeft {membersMsg}");
+            }
+        }
+    }
+
+    internal static async Task InitAsync() => s_prevClan = ClanUtil.FromInit(await GetClanAsync());
 
     internal static async Task BotReadyAsync()
     {

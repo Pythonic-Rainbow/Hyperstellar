@@ -4,12 +4,21 @@ internal sealed class Secrets
 {
     internal static readonly string s_discord;
     internal static readonly string s_coc;
+    internal static readonly ulong s_botLogId;
 
     static Secrets()
     {
         string json = File.ReadAllText("secrets.json");
-        Dictionary<string, string> dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json)!;
-        s_discord = dict["discord"];
-        s_coc = dict["coc"];
+        var definition = new
+        {
+            discord = "",
+            coc = "",
+            botLogId = (ulong)0
+        };
+        var obj = JsonConvert.DeserializeAnonymousType(json, definition)!;
+
+        s_discord = obj.discord;
+        s_coc = obj.coc;
+        s_botLogId = obj.botLogId;
     }
 }

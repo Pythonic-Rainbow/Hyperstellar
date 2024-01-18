@@ -6,11 +6,6 @@ namespace Hyperstellar;
 
 internal sealed class Discord
 {
-#if DEBUG
-    private const ulong BotLogId = 666431254312517633;
-#else
-    private const ulong BotLogId = 1099026457268863017;
-#endif
     private static readonly DiscordSocketClient s_bot = new();
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -25,7 +20,7 @@ internal sealed class Discord
 
     private static Task Ready()
     {
-        s_botLog = (SocketTextChannel)s_bot.GetChannel(BotLogId);
+        s_botLog = (SocketTextChannel)s_bot.GetChannel(Secrets.s_botLogId);
         Task.Run(BotReadyAsync);
         return Task.CompletedTask;
     }
