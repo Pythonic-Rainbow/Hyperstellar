@@ -1,7 +1,8 @@
 ﻿using SQLite;
 
 namespace Hyperstellar.Sql;
-internal class Alt
+
+internal sealed class Alt
 {
     [PrimaryKey, NotNull]
     public string AltId { get; set; }

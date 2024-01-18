@@ -6,10 +6,10 @@ name: C# bot
 on:
   push:
     branches: [ "main", "debug-workflow" ]
-    paths: ["**.cs"]
+    paths: ["**.cs", ".github/workflow/bot.yml"]
   pull_request:
     branches: [ "main" ]
-    paths: ["**.cs"]
+    paths: ["**.cs", ".github/workflow/bot.yml"]
 
 defaults:
  run:
@@ -27,14 +27,14 @@ jobs:
     - name: Build
       run: dotnet publish -c Release -r linux-arm64 --no-self-contained
     - name: Upload program
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Bot
         path: |
           Bot/bin/Release/net8.0/linux-arm64/Bot
           Bot/bin/Release/net8.0/linux-arm64/*.dll
           Bot/bin/Release/net8.0/linux-arm64/*.json
-          Bot/bin/Release/net8.0/linux-arm64/runtimes/linux-arm64/
+          Bot/bin/Release/net8.0/linux-arm64/runtimes/linux-arm64/*.*
   inspect:
     runs-on: ubuntu-latest
     steps:

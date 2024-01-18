@@ -3,9 +3,12 @@ import json
 import os
 from zipfile import ZipFile
 
-os.environ['DOTNET_ROOT'] = os.environ['HOME'] + '/.dotnet'
+try:
+    os.environ['DOTNET_ROOT'] = os.environ['HOME'] + '/.dotnet'
+except KeyError:
+    pass
 
-RUNS_URL = 'https://api.github.com/repos/Pythonic-Rainbow/Hyperstellar/actions/workflows/81383822/runs'
+RUNS_URL = 'https://api.github.com/repos/TCLRainbow/Hyperstellar/actions/workflows/82482571/runs'
 
 
 def explode(cond, msg):
@@ -14,7 +17,7 @@ def explode(cond, msg):
         os._exit(1)
 
 def build_artifact_url(run_id):
-    return f'https://api.github.com/repos/Pythonic-Rainbow/Hyperstellar/actions/runs/{run_id}/artifacts'
+    return f'https://api.github.com/repos/TCLRainbow/Hyperstellar/actions/runs/{run_id}/artifacts'
 
 
 req = request.Request(RUNS_URL)
@@ -26,7 +29,17 @@ print(f'There are {run_count} runs')
 run = result['workflow_runs'][0]
 print(f'Checking run: {run["display_title"]}')
 explode(run['status'] != 'completed', 'Run is not completed!')
-explode(run['conclusion'] != 'success', 'Run failed!')
+req = request.Request(run['jobs_url'])
+with request.urlopen(req) as resp:
+    result = json.loads(resp.read())
+jobs = result['jobs']
+build_ok = False
+for job in jobs:
+    if job['name'] == 'build':
+        build_ok = True
+        explode(job['conclusion'] != 'success', 'Build failed!')
+        break
+explode(not build_ok, 'No build job found!')
 explode(run['head_branch'] != 'main', 'Branch not main')
 explode(run['pull_requests'], 'Triggered by PR')
 run_id = run['id']
