@@ -9,6 +9,7 @@ internal sealed class Db
     internal static void Commit()
     {
         s_db.Commit();
+        Console.WriteLine("Db committed");
         s_db.BeginTransaction();
     }
 

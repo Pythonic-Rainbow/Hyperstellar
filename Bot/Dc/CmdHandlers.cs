@@ -1,19 +1,20 @@
-﻿using Discord.WebSocket;
+﻿using Discord.Interactions;
+using Discord.WebSocket;
 using Hyperstellar.Sql;
 
 namespace Hyperstellar.Dc;
 
-internal class CmdHandlers
+public class CmdHandlers : InteractionModuleBase
 {
-    internal static async Task ShutdownAsync(SocketSlashCommand cmd)
+
+    [SlashCommand("shutdown", "[Admin] Shuts down the bot")]
+    public async Task ShutdownAsync(bool commit = true)
     {
-        if (cmd.User.Id != 264756129916125184)
+        if (Context.User.Id != 264756129916125184)
         {
             return;
         }
-
-        bool commit = cmd.Data.Options.Count == 0 || (bool)cmd.Data.Options.First().Value;
-        await cmd.RespondAsync("Ok", ephemeral: true);
+        await RespondAsync("Ok", ephemeral: true);
         if (commit)
         {
             Db.Commit();
@@ -21,14 +22,15 @@ internal class CmdHandlers
         Environment.Exit(0);
     }
 
-    internal static async Task CommitAsync(SocketSlashCommand cmd)
+    [SlashCommand("commit", "[Admin] Commits db")]
+    public async Task CommitAsync()
     {
-        if (cmd.User.Id != 264756129916125184)
+        if (Context.User.Id != 264756129916125184)
         {
             return;
         }
 
         Db.Commit();
-        await cmd.RespondAsync("Committed", ephemeral: true);
+        await RespondAsync("Committed", ephemeral: true);
     }
 }

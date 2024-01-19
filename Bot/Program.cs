@@ -1,4 +1,4 @@
-﻿namespace Hyperstellar;
+namespace Hyperstellar;
 
 public class Program
 {
