@@ -6,14 +6,10 @@ internal sealed class Db
 {
     internal static readonly SQLiteConnection s_db = new("Hyperstellar.db");
 
-    internal static async Task InitAsync()
+    internal static void Commit()
     {
-        while (true)
-        {
-            s_db.BeginTransaction();
-            await Task.Delay(5 * 60 * 1000);
-            s_db.Commit();
-        }
+        s_db.Commit();
+        s_db.BeginTransaction();
     }
 
     internal static IEnumerable<Member> GetMembers() => s_db.Table<Member>();
@@ -28,5 +24,15 @@ internal sealed class Db
             count += s_db.Delete<Member>(member);
         }
         return count == members.Length;
+    }
+
+    internal static async Task InitAsync()
+    {
+        while (true)
+        {
+            s_db.BeginTransaction();
+            await Task.Delay(5 * 60 * 1000);
+            s_db.Commit();
+        }
     }
 }

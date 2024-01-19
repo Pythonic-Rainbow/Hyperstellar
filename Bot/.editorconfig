@@ -173,6 +173,7 @@ dotnet_diagnostic.IDE0073.severity = none
 csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 csharp_style_unused_value_expression_statement_preference = discard_variable:silent
 dotnet_diagnostic.IDE0058.severity = none
+dotnet_diagnostic.IDE0010.severity = none
 
 # C++ Files
 [*.{cpp,h,in}]

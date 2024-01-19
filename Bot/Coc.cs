@@ -1,6 +1,7 @@
 using ClashOfClans;
 using ClashOfClans.Models;
 using Hyperstellar.Sql;
+using static Hyperstellar.Dc.Discord;
 
 namespace Hyperstellar;
 
@@ -117,7 +118,7 @@ internal sealed class Coc
         }
         if (donationsDelta.Count > 0)
         {
-            await Discord.DonationsChangedAsync(donationsDelta);
+            await DonationsChangedAsync(donationsDelta);
         }
     }
 
