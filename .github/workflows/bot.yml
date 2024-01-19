@@ -27,7 +27,7 @@ jobs:
     - name: Build
       run: dotnet publish -c Release -r linux-arm64 --no-self-contained
     - name: Upload program
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       with:
         name: Bot
         path: |
