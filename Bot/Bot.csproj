@@ -29,11 +29,20 @@
     <PackageReference Include="ClashOfClans" Version="9.0.0" />
     <PackageReference Include="Discord.Net.Interactions" Version="3.13.0" />
     <PackageReference Include="Discord.Net.WebSocket" Version="3.13.0" />
-    <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="SQLite-net">
+      <HintPath>SQLite-net.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
     <None Update="secrets.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="SQLite-net.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

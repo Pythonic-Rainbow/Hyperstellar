@@ -5,6 +5,7 @@ namespace Hyperstellar.Sql;
 internal sealed class Db
 {
     internal static readonly SQLiteConnection s_db = new("Hyperstellar.db");
+    internal static readonly HashSet<ulong> s_admins = s_db.Table<BotAdmin>().Select(a => a.Id).ToHashSet();
 
     internal static void Commit()
     {
@@ -27,13 +28,21 @@ internal sealed class Db
         return count == members.Length;
     }
 
+    internal static bool AddAdmin(ulong id)
+    {
+        var admin = new BotAdmin(id);
+        int count = s_db.Insert(admin);
+        s_admins.Add(id);
+        return count == 1;
+    }
+
     internal static async Task InitAsync()
     {
+        s_db.BeginTransaction();
         while (true)
         {
-            s_db.BeginTransaction();
             await Task.Delay(5 * 60 * 1000);
-            s_db.Commit();
+            Commit();
         }
     }
 }

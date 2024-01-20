@@ -22,10 +22,19 @@ internal sealed class Discord
         return Task.CompletedTask;
     }
 
-    private static async Task Ready()
+    private static Task Ready()
     {
         s_botLog = (SocketTextChannel)s_bot.GetChannel(Secrets.s_botLogId);
-        _ = Task.Run(BotReadyAsync);
+        Task.Run(BotReadyAsync);
+
+        SlashCommandBuilder cmd = new SlashCommandBuilder().WithName("admin").WithDescription("Makes the Discord user an admin");
+        cmd.AddOption("user", ApplicationCommandOptionType.User, "the user", isRequired: true);
+        Task.Run(() =>
+        {
+            s_bot.CreateGlobalApplicationCommandAsync(cmd.Build());
+            Console.WriteLine("Registered command");
+        });
+        return Task.CompletedTask;
     }
 
     private static async Task SlashCmdXAsync(SocketSlashCommand cmd)
@@ -39,6 +48,7 @@ internal sealed class Discord
         s_bot.Log += Log;
         s_bot.Ready += Ready;
         s_bot.SlashCommandExecuted += SlashCmdXAsync;
+
         await s_interactionSvc.AddModulesAsync(Assembly.GetEntryAssembly(), null);
         await s_bot.LoginAsync(TokenType.Bot, Secrets.s_discord);
         await s_bot.StartAsync();
