@@ -5,7 +5,7 @@ using static Hyperstellar.Dc.Discord;
 
 namespace Hyperstellar;
 
-internal sealed class Coc
+internal static class Coc
 {
     private sealed class ClanUtil
     {

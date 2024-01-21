@@ -16,7 +16,9 @@
 ```json
 {
     "discord": "YOUR DISCORD BOT TOKEN",
-    "coc": "YOUR COC KEY, IT IS IP SENSITIVE"
+    "coc": "YOUR COC KEY, IT IS IP SENSITIVE",
+    ...
+    // Please refer to the variable 'definition' in Secrets.cs for all the required data
 }
 ```
 
@@ -31,14 +33,14 @@
 * `Discord.cs`: Module for interacting with Discord API
 * `Sql/`: Interacts with the database
 
-The sole purpose of Program.cs is to fire `InitTask()` in Coc.cs and Discord.cs, then wait forever.
+The sole purpose of Program.cs is to fire `InitAsync()` in Coc.cs, Sql/Db.cs and Discord.cs, then wait forever.
 
 Discord.cs requires some time to be 'ready'. When it's ready, it calls `Coc.BotReadyAsync`, which is an endless loop that processes Coc.cs tasks every 5 seconds.
 
 ## Coc.cs
 When Discord bot is ready, Coc.cs fetches the first copy of clan data. `PollAsync` is called every 5s.
 
-For each call, it fetches the latest Clan data and compares it with the previous one. The result is stored in a `ClanUtil` and is used to dispatch other tasks within Coc.cs. When all the tasks are done, it will replace the previous clan data with the current one.
+For each PollAsync call, it fetches the latest Clan data and compares it with the previous one. The result is stored in a `ClanUtil` and is used to dispatch other tasks within Coc.cs. When all the tasks are done, it will replace the previous clan data with the current one.
 
 For each task run, if it needs to interact with Discord, it will call the appropriate methods in `Discord.cs`.
 
@@ -46,7 +48,7 @@ For each task run, if it needs to interact with Discord, it will call the approp
 # Coding Guidelines
 
 1. No variables should be shared between `Discord.cs`, `Coc.cs` and `Db.cs`. If you need functionalities in another module, expose a public method and call it instead.
-2. Access modifiers: If a var/func shouldn't be shared, make it private. If a var/func should be shared, make it public.
+2. Access modifiers: Make things as restrictive as possible. If a var/func shouldn't be shared, make it private.
 3. SQL: All SQL statements should be executed only in `Sql/`. Same logic as above
 4. How to order things in a class:
 ```cs
@@ -92,4 +94,3 @@ private async Task ReportToCIA() { }
 public uint ComputeFactorial(uint number) { }
 public async Task ProcessPayment() { }
 ```
-5. Make things as restrictive as possible.
