@@ -1,7 +1,7 @@
 ﻿using SQLite;
 
 namespace Hyperstellar.Sql;
-internal class Member
+public class Member
 {
     [PrimaryKey, NotNull]
     public string CocId { get; set; }
@@ -18,9 +18,9 @@ internal class Member
         this.DiscordId = DiscordId;
     }
 
-    public void AddAlt(string altId)
+    public void AddAlt(Member altMember)
     {
-        Alt alt = new(altId, CocId);
+        Alt alt = new(altMember.CocId, CocId);
         Db.s_db.Insert(alt);
     }
 }

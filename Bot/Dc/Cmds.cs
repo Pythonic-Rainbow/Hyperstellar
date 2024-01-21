@@ -1,10 +1,12 @@
-﻿using Discord.Interactions;
+﻿using ClashOfClans.Models;
+using Discord.Interactions;
 using Discord.WebSocket;
+using Hyperstellar.Dc.Attr;
 using Hyperstellar.Sql;
 
 namespace Hyperstellar.Dc;
 
-public class Commands : InteractionModuleBase
+public class Cmds : InteractionModuleBase
 {
     [RequireOwner]
     [SlashCommand("shutdown", "Shuts down the bot")]
@@ -27,7 +29,7 @@ public class Commands : InteractionModuleBase
     }
 
     [RequireOwner]
-    [SlashCommand("admin", "Makes the Discord user an admin")]
+    [SlashCommand("admin", "Makes the Discord user an admin")] // Maybe rename to addadmin
     public async Task AdminAsync(SocketGuildUser user)
     {
         bool success = Db.AddAdmin(user.Id);
@@ -40,4 +42,16 @@ public class Commands : InteractionModuleBase
             await RespondAsync("Error", ephemeral: true);
         }
     }
+
+    [RequireAdmin]
+    [SlashCommand("alt", "Links an alt to a main")]
+    public async Task AltAsync(Member alt, Member main)
+    {
+        main.AddAlt(alt);
+        ClanMember clanAlt = Coc.GetMember(alt.CocId);
+        ClanMember clanMain = Coc.GetMember(main.CocId);
+        await RespondAsync($"`{clanAlt.Name}` is an alt of `{clanMain.Name}`");
+    }
+
+
 }

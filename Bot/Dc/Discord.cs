@@ -2,6 +2,8 @@
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Hyperstellar.Sql;
+//using Microsoft.Extensions.DependencyInjection;
 using static Hyperstellar.Coc;
 
 namespace Hyperstellar.Dc;
@@ -22,19 +24,17 @@ internal sealed class Discord
         return Task.CompletedTask;
     }
 
-    private static Task Ready()
+    private static async Task Ready()
     {
         s_botLog = (SocketTextChannel)s_bot.GetChannel(Secrets.s_botLogId);
         Task.Run(BotReadyAsync);
-
-        SlashCommandBuilder cmd = new SlashCommandBuilder().WithName("admin").WithDescription("Makes the Discord user an admin");
-        cmd.AddOption("user", ApplicationCommandOptionType.User, "the user", isRequired: true);
-        Task.Run(() =>
-        {
-            s_bot.CreateGlobalApplicationCommandAsync(cmd.Build());
-            Console.WriteLine("Registered command");
-        });
-        return Task.CompletedTask;
+        //await s_interactionSvc.RegisterCommandsGloballyAsync();
+        SlashCommandBuilder guildCmd = new SlashCommandBuilder().WithName("alt").WithDescription("Links an alt to a main");
+        guildCmd.AddOption("alt", ApplicationCommandOptionType.String, "alt", isRequired: true);
+        guildCmd.AddOption("main", ApplicationCommandOptionType.String, "main", isRequired: true);
+        await s_bot.CreateGlobalApplicationCommandAsync(guildCmd.Build());
+        Console.WriteLine("Registered commands");
+        //return Task.CompletedTask;
     }
 
     private static async Task SlashCmdXAsync(SocketSlashCommand cmd)
@@ -43,13 +43,24 @@ internal sealed class Discord
         await s_interactionSvc.ExecuteCommandAsync(ctx, null);
     }
 
+    private static async Task InteractionXAsync(ICommandInfo info, IInteractionContext ctx, IResult result)
+    {
+        if (!result.IsSuccess)
+        {
+            await ctx.Interaction.RespondAsync(result.ErrorReason);
+        }
+    }
+
     internal static async Task InitAsync()
     {
         s_bot.Log += Log;
         s_bot.Ready += Ready;
         s_bot.SlashCommandExecuted += SlashCmdXAsync;
+        s_interactionSvc.InteractionExecuted += InteractionXAsync;
 
-        await s_interactionSvc.AddModulesAsync(Assembly.GetEntryAssembly(), null);
+        s_interactionSvc.AddTypeConverter<Member>(new MemberConverter());
+
+        await s_interactionSvc.AddModulesAsync(Assembly.GetEntryAssembly(), null); // Custom SP
         await s_bot.LoginAsync(TokenType.Bot, Secrets.s_discord);
         await s_bot.StartAsync();
     }

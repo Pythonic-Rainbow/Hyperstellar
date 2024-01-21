@@ -28,6 +28,10 @@ internal sealed class Db
         return count == members.Length;
     }
 
+    internal static Member? GetMember(string member) => s_db.Table<Member>().Where(m => m.CocId.Equals(member)).FirstOrDefault();
+
+    internal static bool HasMember(string member) => s_db.Table<Member>().Where(m => m.CocId.Equals(member)).Count() == 1;
+
     internal static bool AddAdmin(ulong id)
     {
         var admin = new BotAdmin(id);

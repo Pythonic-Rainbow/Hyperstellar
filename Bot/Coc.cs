@@ -75,10 +75,46 @@ internal sealed class Coc
     }
 
     private const string ClanId = "#2QU2UCJJC";
-    internal static readonly ClashOfClansClient s_client = new(Secrets.s_coc);
+    private static readonly ClashOfClansClient s_client = new(Secrets.s_coc);
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     private static ClanUtil s_prevClan;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+
+    private static void CheckMembersJoined(ClanUtil clan)
+    {
+        if (clan._joiningMembers.Count > 0)
+        {
+            string[] members = [.. clan._joiningMembers.Keys];
+            bool isSuccess = Db.AddMembers(members);
+            string membersMsg = string.Join(", ", members);
+            if (isSuccess)
+            {
+                Console.WriteLine($"{membersMsg} joined");
+            }
+            else
+            {
+                Console.Error.WriteLine($"ERROR MembersJoined {membersMsg}");
+            }
+        }
+    }
+
+    private static void CheckMembersLeft(ClanUtil clan)
+    {
+        if (clan._leavingMembers.Count > 0)
+        {
+            string[] members = [.. clan._leavingMembers.Keys];
+            bool isSuccess = Db.RemoveMembers(members);
+            string membersMsg = string.Join(", ", members);
+            if (isSuccess)
+            {
+                Console.WriteLine($"{membersMsg} left");
+            }
+            else
+            {
+                Console.Error.WriteLine($"ERROR MembersLeft {membersMsg}");
+            }
+        }
+    }
 
     private static async Task<Clan> GetClanAsync() => await s_client.Clans.GetClanAsync(ClanId);
 
@@ -122,41 +158,13 @@ internal sealed class Coc
         }
     }
 
-    private static void CheckMembersJoined(ClanUtil clan)
+    internal static string? GetMemberId(string name)
     {
-        if (clan._joiningMembers.Count > 0)
-        {
-            string[] members = [.. clan._joiningMembers.Keys];
-            bool isSuccess = Db.AddMembers(members);
-            string membersMsg = string.Join(", ", members);
-            if (isSuccess)
-            {
-                Console.WriteLine($"{membersMsg} joined");
-            }
-            else
-            {
-                Console.Error.WriteLine($"ERROR MembersJoined {membersMsg}");
-            }
-        }
+        ClanMember? result = s_prevClan._clan.MemberList!.FirstOrDefault(m => m.Name == name);
+        return result?.Tag;
     }
 
-    private static void CheckMembersLeft(ClanUtil clan)
-    {
-        if (clan._leavingMembers.Count > 0)
-        {
-            string[] members = [.. clan._leavingMembers.Keys];
-            bool isSuccess = Db.RemoveMembers(members);
-            string membersMsg = string.Join(", ", members);
-            if (isSuccess)
-            {
-                Console.WriteLine($"{membersMsg} left");
-            }
-            else
-            {
-                Console.Error.WriteLine($"ERROR MembersLeft {membersMsg}");
-            }
-        }
-    }
+    internal static ClanMember GetMember(string id) => s_prevClan._members[id];
 
     internal static async Task InitAsync() => s_prevClan = ClanUtil.FromInit(await GetClanAsync());
 
