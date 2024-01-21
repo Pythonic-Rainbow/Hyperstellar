@@ -3,7 +3,6 @@ using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Hyperstellar.Sql;
-//using Microsoft.Extensions.DependencyInjection;
 using static Hyperstellar.Coc;
 
 namespace Hyperstellar.Dc;
@@ -13,10 +12,11 @@ internal sealed class Discord
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     private static SocketTextChannel s_botLog;
+    private static InteractionService s_interactionSvc;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-    private static readonly InteractionService s_interactionSvc = new(s_bot);
     internal static readonly DiscordSocketClient s_bot = new();
+
 
     private static Task Log(LogMessage msg)
     {
@@ -27,14 +27,8 @@ internal sealed class Discord
     private static async Task Ready()
     {
         s_botLog = (SocketTextChannel)s_bot.GetChannel(Secrets.s_botLogId);
-        Task.Run(BotReadyAsync);
-        //await s_interactionSvc.RegisterCommandsGloballyAsync();
-        SlashCommandBuilder guildCmd = new SlashCommandBuilder().WithName("alt").WithDescription("Links an alt to a main");
-        guildCmd.AddOption("alt", ApplicationCommandOptionType.String, "alt", isRequired: true);
-        guildCmd.AddOption("main", ApplicationCommandOptionType.String, "main", isRequired: true);
-        await s_bot.CreateGlobalApplicationCommandAsync(guildCmd.Build());
-        Console.WriteLine("Registered commands");
-        //return Task.CompletedTask;
+        _ = Task.Run(BotReadyAsync);
+        await s_interactionSvc.RegisterCommandsGloballyAsync();
     }
 
     private static async Task SlashCmdXAsync(SocketSlashCommand cmd)
@@ -53,14 +47,14 @@ internal sealed class Discord
 
     internal static async Task InitAsync()
     {
+        s_interactionSvc = new(s_bot);
         s_bot.Log += Log;
         s_bot.Ready += Ready;
         s_bot.SlashCommandExecuted += SlashCmdXAsync;
         s_interactionSvc.InteractionExecuted += InteractionXAsync;
 
         s_interactionSvc.AddTypeConverter<Member>(new MemberConverter());
-
-        await s_interactionSvc.AddModulesAsync(Assembly.GetEntryAssembly(), null); // Custom SP
+        await s_interactionSvc.AddModulesAsync(Assembly.GetEntryAssembly(), null);
         await s_bot.LoginAsync(TokenType.Bot, Secrets.s_discord);
         await s_bot.StartAsync();
     }

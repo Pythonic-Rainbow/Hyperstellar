@@ -47,6 +47,22 @@ public class Cmds : InteractionModuleBase
     [SlashCommand("alt", "Links an alt to a main")]
     public async Task AltAsync(Member alt, Member main)
     {
+        if (alt.CocId == main.CocId)
+        {
+            await RespondAsync("Bro alt must be different from main bruh");
+            return;
+        }
+        if (main.IsAlt())
+        {
+            await RespondAsync("Main can't be an alt in the database!");
+            return;
+        }
+        if (alt.IsMain())
+        {
+            await RespondAsync("Alt can't be a main in the database!");
+            return;
+        }
+
         main.AddAlt(alt);
         ClanMember clanAlt = Coc.GetMember(alt.CocId);
         ClanMember clanMain = Coc.GetMember(main.CocId);

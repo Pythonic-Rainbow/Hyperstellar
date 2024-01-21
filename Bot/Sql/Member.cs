@@ -23,4 +23,16 @@ public class Member
         Alt alt = new(altMember.CocId, CocId);
         Db.s_db.Insert(alt);
     }
+
+    public bool IsAlt()
+    {
+        TableQuery<Alt> result = Db.s_db.Table<Alt>().Where(a => a.AltId == CocId);
+        return result.Count() > 0;
+    }
+
+    public bool IsMain()
+    {
+        TableQuery<Alt> result = Db.s_db.Table<Alt>().Where(a => a.MainId == CocId);
+        return result.Count() > 0;
+    }
 }
