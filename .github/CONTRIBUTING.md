@@ -10,7 +10,7 @@
 
     Only the .NET SDK is essential tbh. This project uses .NET 8  
 
-    You can also use VSCode + C# extension and just download the .NET 8 SDK separately, tho I haven't tried.
+    You can also use VSCode + C# extension and just download the .NET 8 SDK separately.
 
 2. You need to create `secrets.json` in the folder.
 ```json
@@ -22,7 +22,7 @@
 }
 ```
 
-3. You need the SQLite file `Hyperstellar.db`. Just ask me for that
+3. You need the SQLite file `Hyperstellar.db`. Just ask me for that. You need to place it in the debug/release binary output folder, next to the executable.
 
 <a name="overview"></a>
 # Structure Overview

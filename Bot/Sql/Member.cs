@@ -8,14 +8,14 @@ public class Member
     [Unique]
     public ulong? DiscordId { get; set; }
 
-    public Member() => CocId = "";
+    public Member() : this("") { }
 
     public Member(string cocId) => CocId = cocId;
 
-    public Member(string CocId, ulong DiscordId)
+    public Member(string cocId, ulong discordId)
     {
-        this.CocId = CocId;
-        this.DiscordId = DiscordId;
+        CocId = cocId;
+        DiscordId = discordId;
     }
 
     public void AddAlt(Member altMember)
@@ -30,7 +30,7 @@ public class Member
         return result.Count() > 0;
     }
 
-    public bool IsMain()
+    public bool IsAltMain()
     {
         TableQuery<Alt> result = Db.s_db.Table<Alt>().Where(a => a.MainId == CocId);
         return result.Count() > 0;

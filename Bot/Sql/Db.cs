@@ -16,7 +16,12 @@ internal sealed class Db
 
     internal static IEnumerable<Member> GetMembers() => s_db.Table<Member>();
 
-    internal static bool AddMembers(string[] members) => s_db.InsertAll(members.Select(m => new Member(m))) == members.Length;
+    internal static bool AddMembers(string[] members)
+    {
+        int memberCount = s_db.InsertAll(members.Select(m => new Member(m)));
+        int donationCount = s_db.InsertAll(members.Select(m => new Donation(m)));
+        return memberCount == donationCount && memberCount == members.Length;
+    }
 
     internal static bool RemoveMembers(string[] members)
     {

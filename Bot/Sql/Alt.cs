@@ -2,19 +2,13 @@
 
 namespace Hyperstellar.Sql;
 
-internal sealed class Alt
+internal sealed class Alt(string altId, string mainId)
 {
     [PrimaryKey, NotNull]
-    public string AltId { get; set; }
+    public string AltId { get; set; } = altId;
 
     [NotNull]
-    public string MainId { get; set; }
+    public string MainId { get; set; } = mainId;
 
-    public Alt() => AltId = MainId = "";
-
-    public Alt(string altId, string mainId)
-    {
-        AltId = altId;
-        MainId = mainId;
-    }
+    public Alt() : this("", "") { }
 }

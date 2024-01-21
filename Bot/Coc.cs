@@ -48,11 +48,11 @@ internal static class Coc
 
         internal static ClanUtil FromPoll(Clan clan)
         {
-            ClanUtil c = new(clan, new(s_prevClan._members));
+            ClanUtil c = new(clan, new(s_clan._members));
             foreach (ClanMember member in clan.MemberList!)
             {
                 c._members[member.Tag] = member;
-                if (s_prevClan.HasMember(member))
+                if (s_clan.HasMember(member))
                 {
                     c._existingMembers[member.Tag] = member;
                     c._leavingMembers.Remove(member.Tag);
@@ -77,7 +77,7 @@ internal static class Coc
     private const string ClanId = "#2QU2UCJJC";
     private static readonly ClashOfClansClient s_client = new(Secrets.s_coc);
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    private static ClanUtil s_prevClan;
+    private static ClanUtil s_clan;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
     private static void CheckMembersJoined(ClanUtil clan)
@@ -137,7 +137,7 @@ internal static class Coc
         await Task.WhenAll([
             CheckDonationsAsync(clanUtil),
         ]);
-        s_prevClan = clanUtil;
+        s_clan = clanUtil;
     }
 
     private static async Task CheckDonationsAsync(ClanUtil clan)
@@ -146,7 +146,7 @@ internal static class Coc
         foreach (string tag in clan._existingMembers.Keys)
         {
             ClanMember current = clan._members[tag];
-            ClanMember previous = s_prevClan._members[tag];
+            ClanMember previous = s_clan._members[tag];
             if (current.Donations > previous.Donations || current.DonationsReceived > previous.DonationsReceived)
             {
                 donationsDelta[current.Name] = new(current.Donations - previous.Donations, current.DonationsReceived - previous.DonationsReceived);
@@ -158,18 +158,33 @@ internal static class Coc
         }
     }
 
+    private static async Task Donate25Async()
+    {
+        while (true)
+        {
+            DateTime now = DateTime.Now;
+            DateTime nextMonday = now.AddDays(((int)DayOfWeek.Monday - (int)now.DayOfWeek + 7) % 7)
+                                            .Date;
+            TimeSpan timeToWait = nextMonday - now;
+            await Task.Delay(timeToWait);
+
+
+        }
+    }
+
     internal static string? GetMemberId(string name)
     {
-        ClanMember? result = s_prevClan._clan.MemberList!.FirstOrDefault(m => m.Name == name);
+        ClanMember? result = s_clan._clan.MemberList!.FirstOrDefault(m => m.Name == name);
         return result?.Tag;
     }
 
-    internal static ClanMember GetMember(string id) => s_prevClan._members[id];
+    internal static ClanMember GetMember(string id) => s_clan._members[id];
 
-    internal static async Task InitAsync() => s_prevClan = ClanUtil.FromInit(await GetClanAsync());
+    internal static async Task InitAsync() => s_clan = ClanUtil.FromInit(await GetClanAsync());
 
     internal static async Task BotReadyAsync()
     {
+        //_ = Task.Run(Donate25Async);
         while (true)
         {
             await PollAsync();

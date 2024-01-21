@@ -2,12 +2,10 @@
 
 namespace Hyperstellar.Sql;
 
-internal sealed class BotAdmin
+internal sealed class BotAdmin(ulong id)
 {
     [PrimaryKey, NotNull]
-    public ulong Id { get; set; }
+    public ulong Id { get; set; } = id;
 
-    public BotAdmin() => Id = 0;
-
-    public BotAdmin(ulong id) => Id = id;
+    public BotAdmin() : this(0) { }
 }

@@ -57,7 +57,7 @@ public class Cmds : InteractionModuleBase
             await RespondAsync("Main can't be an alt in the database!");
             return;
         }
-        if (alt.IsMain())
+        if (alt.IsAltMain())
         {
             await RespondAsync("Alt can't be a main in the database!");
             return;
