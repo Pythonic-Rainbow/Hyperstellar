@@ -1,11 +1,10 @@
-﻿using ClashOfClans.Models;
-using Discord;
+﻿using Discord;
 using Discord.Interactions;
 using Hyperstellar.Sql;
 
 namespace Hyperstellar.Dc;
 
-internal class MemberConverter : TypeConverter
+internal sealed class MemberConverter : TypeConverter
 {
     public override bool CanConvertTo(System.Type type) => typeof(Member).IsAssignableFrom(type);
     public override ApplicationCommandOptionType GetDiscordType() => ApplicationCommandOptionType.String;

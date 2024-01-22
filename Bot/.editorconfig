@@ -30,6 +30,9 @@ dotnet_style_prefer_conditional_expression_over_assignment = true:silent
 
 # C# files
 [*.cs]
+# ReSharper
+resharper_function_never_returns_highlighting = none
+
 # New line preferences
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true

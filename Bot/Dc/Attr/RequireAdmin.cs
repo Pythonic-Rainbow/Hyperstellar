@@ -4,7 +4,7 @@ using Hyperstellar.Sql;
 
 namespace Hyperstellar.Dc.Attr;
 
-internal class RequireAdmin : PreconditionAttribute
+internal sealed class RequireAdmin : PreconditionAttribute
 {
     public override Task<PreconditionResult> CheckRequirementsAsync(IInteractionContext context, ICommandInfo commandInfo, IServiceProvider services) => Db.s_admins.Contains(context.User.Id)
             ? Task.FromResult(PreconditionResult.FromSuccess())

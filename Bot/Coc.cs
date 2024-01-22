@@ -9,11 +9,11 @@ internal static class Coc
 {
     private sealed class ClanUtil
     {
-        internal Clan _clan;
+        internal readonly Clan _clan;
         internal readonly Dictionary<string, ClanMember> _members = [];
         internal readonly Dictionary<string, ClanMember> _existingMembers = [];
         internal readonly Dictionary<string, ClanMember> _joiningMembers = [];
-        internal Dictionary<string, ClanMember> _leavingMembers;
+        internal readonly Dictionary<string, ClanMember> _leavingMembers;
 
         private ClanUtil(Clan clan, Dictionary<string, ClanMember> leavingMembers)
         {
@@ -82,37 +82,41 @@ internal static class Coc
 
     private static void CheckMembersJoined(ClanUtil clan)
     {
-        if (clan._joiningMembers.Count > 0)
+        if (clan._joiningMembers.Count == 0)
         {
-            string[] members = [.. clan._joiningMembers.Keys];
-            bool isSuccess = Db.AddMembers(members);
-            string membersMsg = string.Join(", ", members);
-            if (isSuccess)
-            {
-                Console.WriteLine($"{membersMsg} joined");
-            }
-            else
-            {
-                Console.Error.WriteLine($"ERROR MembersJoined {membersMsg}");
-            }
+            return;
+        }
+
+        string[] members = [.. clan._joiningMembers.Keys];
+        bool isSuccess = Db.AddMembers(members);
+        string membersMsg = string.Join(", ", members);
+        if (isSuccess)
+        {
+            Console.WriteLine($"{membersMsg} joined");
+        }
+        else
+        {
+            Console.Error.WriteLine($"ERROR MembersJoined {membersMsg}");
         }
     }
 
     private static void CheckMembersLeft(ClanUtil clan)
     {
-        if (clan._leavingMembers.Count > 0)
+        if (clan._leavingMembers.Count == 0)
         {
-            string[] members = [.. clan._leavingMembers.Keys];
-            bool isSuccess = Db.RemoveMembers(members);
-            string membersMsg = string.Join(", ", members);
-            if (isSuccess)
-            {
-                Console.WriteLine($"{membersMsg} left");
-            }
-            else
-            {
-                Console.Error.WriteLine($"ERROR MembersLeft {membersMsg}");
-            }
+            return;
+        }
+
+        string[] members = [.. clan._leavingMembers.Keys];
+        bool isSuccess = Db.RemoveMembers(members);
+        string membersMsg = string.Join(", ", members);
+        if (isSuccess)
+        {
+            Console.WriteLine($"{membersMsg} left");
+        }
+        else
+        {
+            Console.Error.WriteLine($"ERROR MembersLeft {membersMsg}");
         }
     }
 

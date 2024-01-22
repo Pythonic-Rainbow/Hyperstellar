@@ -2,7 +2,7 @@
 
 namespace Hyperstellar.Sql;
 
-internal class Donation(string id)
+internal sealed class Donation(string id)
 {
     [PrimaryKey, NotNull]
     public string Id { get; set; } = id;

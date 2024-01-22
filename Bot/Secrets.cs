@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
 
+namespace Hyperstellar;
+
 internal sealed class Secrets
 {
     internal static readonly string s_discord;  // Your Discord bot token
