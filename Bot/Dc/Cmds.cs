@@ -69,5 +69,10 @@ public class Cmds : InteractionModuleBase
         await RespondAsync($"`{clanAlt.Name}` is an alt of `{clanMain.Name}`");
     }
 
-
+    [SlashCommand("info", "Check the User's infomation")]
+    public async Task InfoAsync(Member member)
+    {
+        ClanMember cocMem = Coc.GetMember(member.CocId);
+        await RespondAsync($"{cocMem.Tag} {cocMem.Name}");
+    }
 }
