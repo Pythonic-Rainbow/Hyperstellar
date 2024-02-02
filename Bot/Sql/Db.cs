@@ -10,7 +10,6 @@ internal sealed class Db
     internal static void Commit()
     {
         s_db.Commit();
-        Console.WriteLine("Db committed");
         s_db.BeginTransaction();
     }
 
@@ -23,7 +22,7 @@ internal sealed class Db
         return memberCount == donationCount && memberCount == members.Length;
     }
 
-    internal static bool RemoveMembers(string[] members)
+    internal static bool DeleteMembers(string[] members)
     {
         int count = 0;
         foreach (string member in members)
@@ -37,9 +36,17 @@ internal sealed class Db
 
     internal static bool HasMember(string member) => s_db.Table<Member>().Where(m => m.CocId.Equals(member)).Count() == 1;
 
+    internal static Donation? GetDonation(string id) => s_db.Table<Donation>().Where(d => d.MainId == id).FirstOrDefault();
+
+    internal static IEnumerable<Donation> GetDonations() => s_db.Table<Donation>();
+
+    internal static bool UpdateDonation(Donation donation) => s_db.Update(donation) == 1;
+
+    internal static Alt? GetAlt(string altId) => s_db.Table<Alt>().Where(a => a.AltId == altId).FirstOrDefault();
+
     internal static bool AddAdmin(ulong id)
     {
-        var admin = new BotAdmin(id);
+        BotAdmin admin = new(id);
         int count = s_db.Insert(admin);
         s_admins.Add(id);
         return count == 1;

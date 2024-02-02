@@ -45,11 +45,18 @@ internal sealed class Discord
         }
     }
 
+    private static Task DisconnectedAsync(Exception ex)
+    {
+        Console.WriteLine("AYO");
+        throw ex;
+    }
+
     internal static async Task InitAsync()
     {
         s_interactionSvc = new(s_bot);
         s_bot.Log += Log;
         s_bot.Ready += Ready;
+        s_bot.Disconnected += DisconnectedAsync;
         s_bot.SlashCommandExecuted += SlashCmdXAsync;
         s_interactionSvc.InteractionExecuted += InteractionXAsync;
 
@@ -85,4 +92,8 @@ internal sealed class Discord
         msg += string.Join(", ", items);
         await s_botLog.SendMessageAsync(msg);
     }
+
+    internal static async Task Donate25TriggerAsync(List<string> violators) => await s_botLog.SendMessageAsync($"[Donate25] {string.Join(", ", violators)}");
+
+    internal static async Task WarnAsync(string msg) => await s_botLog.SendMessageAsync(msg);
 }

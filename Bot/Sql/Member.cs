@@ -5,6 +5,7 @@ public class Member
 {
     [PrimaryKey, NotNull]
     public string CocId { get; set; }
+
     [Unique]
     public ulong? DiscordId { get; set; }
 
@@ -21,13 +22,14 @@ public class Member
     public void AddAlt(Member altMember)
     {
         Alt alt = new(altMember.CocId, CocId);
+        Coc.Donate25_AddAlt(altMember.CocId, CocId);
         Db.s_db.Insert(alt);
     }
 
     public bool IsAlt()
     {
         TableQuery<Alt> result = Db.s_db.Table<Alt>().Where(a => a.AltId == CocId);
-        return result.Count() > 0;
+        return result.Any();
     }
 
     public bool IsAltMain()
@@ -35,4 +37,8 @@ public class Member
         TableQuery<Alt> result = Db.s_db.Table<Alt>().Where(a => a.MainId == CocId);
         return result.Count() > 0;
     }
+
+    public Alt? TryToAlt() => Db.s_db.Table<Alt>().Where(a => a.AltId == CocId).FirstOrDefault();
+
+    public TableQuery<Alt> GetAltsByMain() => Db.s_db.Table<Alt>().Where(a => a.MainId == CocId);
 }

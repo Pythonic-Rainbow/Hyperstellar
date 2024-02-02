@@ -66,7 +66,7 @@ public class Cmds : InteractionModuleBase
         main.AddAlt(alt);
         ClanMember clanAlt = Coc.GetMember(alt.CocId);
         ClanMember clanMain = Coc.GetMember(main.CocId);
-        await RespondAsync($"`{clanAlt.Name}` is an alt of `{clanMain.Name}`");
+        await RespondAsync($"`{clanAlt.Name}` is now an alt of `{clanMain.Name}`");
     }
 
 
