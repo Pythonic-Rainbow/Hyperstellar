@@ -1,4 +1,5 @@
-﻿using SQLite;
+﻿using Hyperstellar.Clash;
+using SQLite;
 
 namespace Hyperstellar.Sql;
 public class Member
@@ -22,7 +23,7 @@ public class Member
     public void AddAlt(Member altMember)
     {
         Alt alt = new(altMember.CocId, CocId);
-        Coc.Donate25_AddAlt(altMember.CocId, CocId);
+        Donate25.AltAdded(altMember.CocId, CocId);
         Db.s_db.Insert(alt);
     }
 

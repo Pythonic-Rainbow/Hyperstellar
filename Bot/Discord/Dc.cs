@@ -3,11 +3,11 @@ using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Hyperstellar.Sql;
-using static Hyperstellar.Coc;
+using static Hyperstellar.Clash.Coc;
 
-namespace Hyperstellar.Dc;
+namespace Hyperstellar.Discord;
 
-internal sealed class Discord
+internal sealed class Dc
 {
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -33,7 +33,7 @@ internal sealed class Discord
 
     private static async Task SlashCmdXAsync(SocketSlashCommand cmd)
     {
-        var ctx = new SocketInteractionContext(s_bot, cmd);
+        SocketInteractionContext ctx = new(s_bot, cmd);
         await s_interactionSvc.ExecuteCommandAsync(ctx, null);
     }
 
@@ -45,18 +45,11 @@ internal sealed class Discord
         }
     }
 
-    private static Task DisconnectedAsync(Exception ex)
-    {
-        Console.WriteLine("AYO");
-        throw ex;
-    }
-
     internal static async Task InitAsync()
     {
-        s_interactionSvc = new(s_bot);
+        s_interactionSvc = new(s_bot); // Dont make it inline instantiate because s_bot.Rest would still be null
         s_bot.Log += Log;
         s_bot.Ready += Ready;
-        s_bot.Disconnected += DisconnectedAsync;
         s_bot.SlashCommandExecuted += SlashCmdXAsync;
         s_interactionSvc.InteractionExecuted += InteractionXAsync;
 
@@ -93,7 +86,5 @@ internal sealed class Discord
         await s_botLog.SendMessageAsync(msg);
     }
 
-    internal static async Task Donate25TriggerAsync(List<string> violators) => await s_botLog.SendMessageAsync($"[Donate25] {string.Join(", ", violators)}");
-
-    internal static async Task WarnAsync(string msg) => await s_botLog.SendMessageAsync(msg);
+    internal static async Task Donate25Async(List<string> violators) => await s_botLog.SendMessageAsync($"[Donate25] {string.Join(", ", violators)}");
 }

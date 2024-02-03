@@ -1,10 +1,11 @@
 ﻿using ClashOfClans.Models;
 using Discord.Interactions;
 using Discord.WebSocket;
-using Hyperstellar.Dc.Attr;
+using Hyperstellar.Discord.Attr;
 using Hyperstellar.Sql;
+using Hyperstellar.Clash;
 
-namespace Hyperstellar.Dc;
+namespace Hyperstellar.Discord;
 
 public class Cmds : InteractionModuleBase
 {

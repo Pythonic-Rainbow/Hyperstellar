@@ -1,8 +1,9 @@
 ﻿using Discord;
 using Discord.Interactions;
+using Hyperstellar.Clash;
 using Hyperstellar.Sql;
 
-namespace Hyperstellar.Dc;
+namespace Hyperstellar.Discord;
 
 internal sealed class MemberConverter : TypeConverter
 {
