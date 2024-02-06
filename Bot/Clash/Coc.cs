@@ -10,7 +10,7 @@ internal static class Coc
     private const string ClanId = "#2QU2UCJJC"; // 2G8LP8PVV
     private static readonly ClashOfClansClient s_client = new(Secrets.s_coc);
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    internal static ClanUtil s_clan { get; private set; }
+    internal static ClanUtil s_clan;// { get; private set; }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
     private static void CheckMembersJoined(ClanUtil clan)
