@@ -10,7 +10,7 @@ internal static class Coc
     private const string ClanId = "#2QU2UCJJC"; // 2G8LP8PVV
     private static readonly ClashOfClansClient s_client = new(Secrets.s_coc);
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    internal static ClanUtil s_clan;// { get; private set; }
+    internal static ClanUtil Clan { get; private set; }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
     private static void CheckMembersJoined(ClanUtil clan)
@@ -97,7 +97,7 @@ internal static class Coc
         await Task.WhenAll([
             CheckDonationsAsync(clanUtil),
         ]);
-        s_clan = clanUtil;
+        Clan = clanUtil;
     }
 
     private static async Task CheckDonationsAsync(ClanUtil clan)
@@ -106,7 +106,7 @@ internal static class Coc
         foreach (string tag in clan._existingMembers.Keys)
         {
             ClanMember current = clan._members[tag];
-            ClanMember previous = s_clan._members[tag];
+            ClanMember previous = Clan._members[tag];
             if (current.Donations > previous.Donations || current.DonationsReceived > previous.DonationsReceived)
             {
                 donDelta[current.Tag] = new(current.Donations - previous.Donations, current.DonationsReceived - previous.DonationsReceived);
@@ -170,13 +170,13 @@ internal static class Coc
 
     internal static string? GetMemberId(string name)
     {
-        ClanMember? result = s_clan._clan.MemberList!.FirstOrDefault(m => m.Name == name);
+        ClanMember? result = Clan._clan.MemberList!.FirstOrDefault(m => m.Name == name);
         return result?.Tag;
     }
 
-    internal static ClanMember GetMember(string id) => s_clan._members[id];
+    internal static ClanMember GetMember(string id) => Clan._members[id];
 
-    internal static async Task InitAsync() => s_clan = ClanUtil.FromInit(await GetClanAsync());
+    internal static async Task InitAsync() => Clan = ClanUtil.FromInit(await GetClanAsync());
 
     internal static async Task BotReadyAsync()
     {

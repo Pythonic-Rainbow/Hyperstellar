@@ -44,11 +44,11 @@ internal sealed class ClanUtil
 
     internal static ClanUtil FromPoll(Clan clan)
     {
-        ClanUtil c = new(clan, new(Coc.s_clan._members));
+        ClanUtil c = new(clan, new(Coc.Clan._members));
         foreach (ClanMember member in clan.MemberList!)
         {
             c._members[member.Tag] = member;
-            if (Coc.s_clan.HasMember(member))
+            if (Coc.Clan.HasMember(member))
             {
                 c._existingMembers[member.Tag] = member;
                 c._leavingMembers.Remove(member.Tag);
