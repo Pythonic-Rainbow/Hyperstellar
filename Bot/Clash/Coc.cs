@@ -81,10 +81,6 @@ internal static class Coc
     private static async Task PollAsync()
     {
         Clan clan = await GetClanAsync();
-        if (clan == null)
-        {
-            return;
-        }
 
         if (clan.MemberList == null)
         {
