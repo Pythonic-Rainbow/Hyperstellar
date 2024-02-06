@@ -36,10 +36,12 @@ public class Member
     public bool IsAltMain()
     {
         TableQuery<Alt> result = Db.s_db.Table<Alt>().Where(a => a.MainId == CocId);
-        return result.Count() > 0;
+        return result.Any();
     }
 
     public Alt? TryToAlt() => Db.s_db.Table<Alt>().Where(a => a.AltId == CocId).FirstOrDefault();
 
     public TableQuery<Alt> GetAltsByMain() => Db.s_db.Table<Alt>().Where(a => a.MainId == CocId);
+
+    public string GetName() => Coc.GetMember(CocId).Name;
 }

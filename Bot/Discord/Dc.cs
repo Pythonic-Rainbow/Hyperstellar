@@ -2,8 +2,8 @@
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Hyperstellar.Clash;
 using Hyperstellar.Sql;
-using static Hyperstellar.Clash.Coc;
 
 namespace Hyperstellar.Discord;
 
@@ -27,7 +27,7 @@ internal sealed class Dc
     private static async Task Ready()
     {
         s_botLog = (SocketTextChannel)s_bot.GetChannel(Secrets.s_botLogId);
-        _ = Task.Run(BotReadyAsync);
+        _ = Task.Run(Coc.BotReadyAsync);
         await s_interactionSvc.RegisterCommandsGloballyAsync();
     }
 
@@ -59,26 +59,28 @@ internal sealed class Dc
         await s_bot.StartAsync();
     }
 
-    internal static async Task DonationsChangedAsync(Dictionary<string, DonationTuple> donationsDelta)
+    internal static async Task DonationsChangedAsync(Dictionary<string, DonationTuple> donDelta)
     {
         string msg = "[DNT] ";
-        List<string> items = new(donationsDelta.Count / 2);
-        foreach (string name in donationsDelta.Keys)
+        List<string> items = new(donDelta.Count / 2);
+        foreach (string tag in donDelta.Keys)
         {
-            int donated = donationsDelta[name]._donated;
+            int donated = donDelta[tag]._donated;
             if (donated > 0)
             {
+                string name = Coc.GetMember(tag).Name;
                 items.Add($"{name}: {donated}");
             }
         }
         msg += string.Join(", ", items);
         msg += "\n=> ";
         items.Clear();
-        foreach (string name in donationsDelta.Keys)
+        foreach (string tag in donDelta.Keys)
         {
-            int received = donationsDelta[name]._received;
+            int received = donDelta[tag]._received;
             if (received > 0)
             {
+                string name = Coc.GetMember(tag).Name;
                 items.Add($"{name}: {received}");
             }
         }

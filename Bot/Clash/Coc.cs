@@ -1,21 +1,12 @@
 using ClashOfClans;
 using ClashOfClans.Models;
+using Hyperstellar.Discord;
 using Hyperstellar.Sql;
-using static Hyperstellar.Discord.Dc;
 
 namespace Hyperstellar.Clash;
 
 internal static class Coc
 {
-
-    internal readonly struct DonationTuple(int donated, int received)
-    {
-        internal readonly int _donated = donated;
-        internal readonly int _received = received;
-
-        internal DonationTuple Add(DonationTuple dt) => new(_donated + dt._donated, _received + dt._received);
-    }
-
     private const string ClanId = "#2QU2UCJJC"; // 2G8LP8PVV
     private static readonly ClashOfClansClient s_client = new(Secrets.s_coc);
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -111,57 +102,53 @@ internal static class Coc
 
     private static async Task CheckDonationsAsync(ClanUtil clan)
     {
-        Dictionary<string, DonationTuple> donationsDelta = [];
-        Dictionary<string, DonationTuple> donationsTagDelta = [];
+        Dictionary<string, DonationTuple> donDelta = [];
         foreach (string tag in clan._existingMembers.Keys)
         {
             ClanMember current = clan._members[tag];
             ClanMember previous = s_clan._members[tag];
             if (current.Donations > previous.Donations || current.DonationsReceived > previous.DonationsReceived)
             {
-                donationsDelta[current.Name] = new(current.Donations - previous.Donations, current.DonationsReceived - previous.DonationsReceived);
-                donationsTagDelta[current.Tag] = new(current.Donations - previous.Donations, current.DonationsReceived - previous.DonationsReceived);
+                donDelta[current.Tag] = new(current.Donations - previous.Donations, current.DonationsReceived - previous.DonationsReceived);
             }
 
         }
 
 
-        foreach (KeyValuePair<string, DonationTuple> dd in donationsTagDelta)
+        foreach (KeyValuePair<string, DonationTuple> dd in donDelta)
         {
             Console.WriteLine($"{dd.Key}: {dd.Value._donated} {dd.Value._received}");
         }
 
         // Fold alt data into main
-        Dictionary<string, DonationTuple> folded = [];
-        foreach (KeyValuePair<string, DonationTuple> donDelta in donationsTagDelta)
+        Dictionary<string, DonationTuple> foldedDelta = [];
+        foreach (KeyValuePair<string, DonationTuple> delta in donDelta)
         {
-            string tag = donDelta.Key;
-            DonationTuple dt = donDelta.Value;
-            Member member = new(tag);
-            Alt? alt = member.TryToAlt();
+            string tag = delta.Key;
+            DonationTuple dt = delta.Value;
+            Alt? alt = new Member(tag).TryToAlt();
             if (alt != null)
             {
                 tag = alt.MainId;
             }
-            folded[tag] = folded.TryGetValue(tag, out DonationTuple value) ? value.Add(dt) : dt;
+            foldedDelta[tag] = foldedDelta.TryGetValue(tag, out DonationTuple value) ? value.Add(dt) : dt;
         }
-        donationsTagDelta = folded;
 
-        if (donationsTagDelta.Count > 0)
+        if (foldedDelta.Count > 0)
         {
             Console.WriteLine("---");
         }
 
-        foreach (KeyValuePair<string, DonationTuple> dd in donationsTagDelta)
+        foreach (KeyValuePair<string, DonationTuple> dd in foldedDelta)
         {
             Console.WriteLine($"{dd.Key}: {dd.Value._donated} {dd.Value._received}");
         }
 
-        // Everyone is main now
-        foreach (KeyValuePair<string, DonationTuple> donDelta in donationsTagDelta)
+        // Everyone is main now, begin processing Donate25
+        foreach (KeyValuePair<string, DonationTuple> delta in foldedDelta)
         {
-            string tag = donDelta.Key;
-            DonationTuple dt = donDelta.Value;
+            string tag = delta.Key;
+            DonationTuple dt = delta.Value;
             int donated = dt._donated;
             int received = dt._received;
 
@@ -175,9 +162,9 @@ internal static class Coc
             }
         }
 
-        if (donationsDelta.Count > 0)
+        if (donDelta.Count > 0)
         {
-            await DonationsChangedAsync(donationsDelta);
+            await Dc.DonationsChangedAsync(donDelta);
         }
     }
 
