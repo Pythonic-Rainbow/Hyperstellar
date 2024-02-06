@@ -8,7 +8,7 @@ internal sealed class Donation(string id, long checkTime)
     public string MainId { get; set; } = id;
 
     [NotNull]
-    public uint Donated { get; set; } = 0;
+    public uint Donated { get; set; }
 
     [NotNull]
     public long Checked { get; set; } = checkTime;
