@@ -23,20 +23,15 @@ internal sealed class ClanUtil
         IEnumerable<string> existingMembers = Db.GetMembers().Select(m => m.CocId);
         foreach (string dbMember in existingMembers)
         {
-            bool stillExists = false;
-            foreach (ClanMember clanMember in clan.MemberList!)
-            {
-                if (clanMember.Tag.Equals(dbMember))
-                {
-                    c._members[dbMember] = clanMember;
-                    clan.MemberList.Remove(clanMember);
-                    stillExists = true;
-                    break;
-                }
-            }
-            if (!stillExists)
+            ClanMember? clanMember = clan.MemberList!.FirstOrDefault(m => m.Tag == dbMember);
+            if (clanMember == null)
             {
                 c._members[dbMember] = new();  // Fake a member
+            }
+            else
+            {
+                c._members[dbMember] = clanMember;
+                clan.MemberList!.Remove(clanMember);
             }
         }
         return c;
@@ -61,6 +56,6 @@ internal sealed class ClanUtil
         return c;
     }
 
-    internal bool HasMember(ClanMember member) => _members.ContainsKey(member.Tag);
+    private bool HasMember(ClanMember member) => _members.ContainsKey(member.Tag);
 }
 

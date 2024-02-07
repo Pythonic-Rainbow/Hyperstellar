@@ -33,6 +33,7 @@ dotnet_diagnostic.CA1852.severity = suggestion
 [*.cs]
 # ReSharper
 resharper_function_never_returns_highlighting = none
+resharper_arrange_object_creation_when_type_not_evident_highlighting = none
 
 # New line preferences
 csharp_new_line_before_open_brace = all

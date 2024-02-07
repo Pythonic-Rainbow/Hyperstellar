@@ -91,7 +91,7 @@ internal static class Coc
         CheckMembersJoined(clanUtil);
         CheckMembersLeft(clanUtil);
         await Task.WhenAll([
-            CheckDonationsAsync(clanUtil),
+            CheckDonationsAsync(clanUtil)
         ]);
         Clan = clanUtil;
     }
@@ -141,10 +141,8 @@ internal static class Coc
         }
 
         // Everyone is main now, begin processing Donate25
-        foreach (KeyValuePair<string, DonationTuple> delta in foldedDelta)
+        foreach ((string tag, DonationTuple dt) in foldedDelta)
         {
-            string tag = delta.Key;
-            DonationTuple dt = delta.Value;
             int donated = dt._donated;
             int received = dt._received;
 
