@@ -13,10 +13,10 @@ internal sealed class Dc
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     private static SocketTextChannel s_botLog;
     private static InteractionService s_interactionSvc;
+    private static IApplication s_botApp;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
     internal static readonly DiscordSocketClient s_bot = new();
-
 
     private static Task Log(LogMessage msg)
     {
@@ -56,6 +56,7 @@ internal sealed class Dc
         s_interactionSvc.AddTypeConverter<Member>(new MemberConverter());
         await s_interactionSvc.AddModulesAsync(Assembly.GetEntryAssembly(), null);
         await s_bot.LoginAsync(TokenType.Bot, Secrets.s_discord);
+        s_botApp = await s_bot.GetApplicationInfoAsync();
         await s_bot.StartAsync();
     }
 
@@ -89,4 +90,25 @@ internal sealed class Dc
     }
 
     internal static async Task Donate25Async(List<string> violators) => await s_botLog.SendMessageAsync($"[Donate25] {string.Join(", ", violators)}");
+
+    internal static async Task ExceptionAsync(Exception ex)
+    {
+        EmbedBuilder emb = new()
+        {
+            Title = ex.Message
+        };
+        if (ex.StackTrace != null)
+        {
+            emb.Description = ex.StackTrace;
+        }
+        string? exName = ex.GetType().FullName;
+        if (exName != null)
+        {
+            emb.Author = new EmbedAuthorBuilder
+            {
+                Name = exName
+            };
+        }
+        await s_botLog.SendMessageAsync(s_botApp.Owner.Mention, embed: emb.Build());
+    }
 }

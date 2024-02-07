@@ -178,7 +178,14 @@ internal static class Coc
         _ = Task.Run(Donate25.CheckAsync);
         while (true)
         {
-            await PollAsync();
+            try
+            {
+                await PollAsync();
+            }
+            catch (Exception ex)
+            {
+                await Dc.ExceptionAsync(ex);
+            }
             await Task.Delay(20000);
         }
     }
