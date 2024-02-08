@@ -5,10 +5,10 @@ name: C# bot
 
 on:
   push:
-    branches: [ "main", "debug-workflow" ]
+    # branches: [ "main", "debug-workflow" ]
     paths: ["**.cs", ".github/workflows/bot.yml"]
   pull_request:
-    branches: [ "main" ]
+    # branches: [ "main" ]
     paths: ["**.cs", ".github/workflows/bot.yml"]
 
 defaults:

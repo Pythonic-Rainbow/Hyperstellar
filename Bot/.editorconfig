@@ -34,9 +34,14 @@ dotnet_diagnostic.CA1852.severity = suggestion
 resharper_function_never_returns_highlighting = none
 resharper_arrange_object_creation_when_type_not_evident_highlighting = none
 resharper_invert_if_highlighting = none
+resharper_arrange_redundant_parentheses_highlighting = none
 [Discord/Cmds.cs]
 resharper_unused_type_global_highlighting = none
 resharper_unused_member_global_highlighting = none
+[Secrets.cs]
+resharper_not_accessed_field_global_highlighting = none
+[Sql/*.cs]
+resharper_auto_property_can_be_made_get_only_global_highlighting = none
 
 # C# files
 [*.cs]

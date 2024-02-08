@@ -7,7 +7,7 @@ using Hyperstellar.Sql;
 
 namespace Hyperstellar.Discord;
 
-internal sealed class Dc
+internal static class Dc
 {
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -16,7 +16,7 @@ internal sealed class Dc
     private static IApplication s_botApp;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-    internal static readonly DiscordSocketClient s_bot = new();
+    private static readonly DiscordSocketClient s_bot = new();
 
     private static Task Log(LogMessage msg)
     {
@@ -64,32 +64,24 @@ internal sealed class Dc
     {
         string msg = "[DNT] ";
         List<string> items = new(donDelta.Count / 2);
-        foreach (string tag in donDelta.Keys)
+        foreach ((string tag, DonationTuple dt) in donDelta.Where(d => d.Value._donated > 0))
         {
-            int donated = donDelta[tag]._donated;
-            if (donated > 0)
-            {
-                string name = Coc.GetMember(tag).Name;
-                items.Add($"{name}: {donated}");
-            }
+            string name = Coc.GetMember(tag).Name;
+            items.Add($"{name}: {dt._donated}");
         }
         msg += string.Join(", ", items);
         msg += "\n=> ";
         items.Clear();
-        foreach (string tag in donDelta.Keys)
+        foreach ((string tag, DonationTuple dt) in donDelta.Where(d => d.Value._received > 0))
         {
-            int received = donDelta[tag]._received;
-            if (received > 0)
-            {
-                string name = Coc.GetMember(tag).Name;
-                items.Add($"{name}: {received}");
-            }
+            string name = Coc.GetMember(tag).Name;
+            items.Add($"{name}: {dt._received}");
         }
         msg += string.Join(", ", items);
         await s_botLog.SendMessageAsync(msg);
     }
 
-    internal static async Task Donate25Async(List<string> violators) => await s_botLog.SendMessageAsync($"[Donate25] {string.Join(", ", violators)}");
+    internal static async Task Donate25Async(IEnumerable<string> violators) => await s_botLog.SendMessageAsync($"[Donate25] {string.Join(", ", violators)}");
 
     internal static async Task ExceptionAsync(Exception ex)
     {

@@ -1,6 +1,6 @@
 namespace Hyperstellar;
 
-public class Program
+public static class Program
 {
     public static async Task Main() => await Task.WhenAll([
         Discord.Dc.InitAsync(),
