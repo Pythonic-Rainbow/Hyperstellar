@@ -29,12 +29,17 @@ dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 dotnet_style_prefer_conditional_expression_over_assignment = true:silent
 dotnet_diagnostic.CA1852.severity = suggestion
 
-# C# files
-[*.cs]
 # ReSharper
+[*.cs]
 resharper_function_never_returns_highlighting = none
 resharper_arrange_object_creation_when_type_not_evident_highlighting = none
+resharper_invert_if_highlighting = none
+[Discord/Cmds.cs]
 resharper_unused_type_global_highlighting = none
+resharper_unused_member_global_highlighting = none
+
+# C# files
+[*.cs]
 
 # New line preferences
 csharp_new_line_before_open_brace = all

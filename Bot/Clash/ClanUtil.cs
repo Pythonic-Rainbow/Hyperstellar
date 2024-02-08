@@ -56,6 +56,8 @@ internal sealed class ClanUtil
         return c;
     }
 
+    // ReSharper disable All
     private bool HasMember(ClanMember member) => _members.ContainsKey(member.Tag);
+    // ReSharper enable All
 }
 
