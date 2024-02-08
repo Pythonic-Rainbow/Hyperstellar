@@ -42,6 +42,7 @@ resharper_unused_member_global_highlighting = none
 resharper_not_accessed_field_global_highlighting = none
 [Sql/*.cs]
 resharper_auto_property_can_be_made_get_only_global_highlighting = none
+resharper_member_can_be_private_global_highlighting = none
 
 # C# files
 [*.cs]
