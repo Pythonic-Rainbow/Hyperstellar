@@ -17,6 +17,12 @@ internal sealed class ClanUtil
         _leavingMembers = leavingMembers;
     }
 
+    internal ClanUtil()
+    {
+        _clan = new();
+        _leavingMembers = [];
+    }
+
     internal static ClanUtil FromInit(Clan clan)
     {
         ClanUtil c = new(clan, []);
@@ -26,7 +32,11 @@ internal sealed class ClanUtil
             ClanMember? clanMember = clan.MemberList!.FirstOrDefault(m => m.Tag == dbMember);
             if (clanMember == null)
             {
-                c._members[dbMember] = new();  // Fake a member
+                ClanMember m = new()
+                {
+                    Tag = dbMember
+                };
+                c._members[dbMember] = m;  // Fake a member
             }
             else
             {

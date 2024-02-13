@@ -4,6 +4,8 @@ using SQLite;
 namespace Hyperstellar.Sql;
 public class Member
 {
+    internal static event Action<Alt>? s_eventAltAdded;
+
     [PrimaryKey, NotNull]
     public string CocId { get; set; }
 
@@ -23,8 +25,8 @@ public class Member
     public void AddAlt(Member altMember)
     {
         Alt alt = new(altMember.CocId, CocId);
-        Donate25.AltAdded(altMember.CocId, CocId);
         Db.s_db.Insert(alt);
+        s_eventAltAdded!(alt);
     }
 
     public bool IsAlt()
@@ -39,7 +41,7 @@ public class Member
         return result.Any();
     }
 
-    public Alt? TryToAlt() => Db.s_db.Table<Alt>().Where(a => a.AltId == CocId).FirstOrDefault();
+    public Alt? TryToAlt() => Db.s_db.Table<Alt>().FirstOrDefault(a => a.AltId == CocId);
 
     public TableQuery<Alt> GetAltsByMain() => Db.s_db.Table<Alt>().Where(a => a.MainId == CocId);
 

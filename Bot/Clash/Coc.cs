@@ -9,9 +9,29 @@ internal static class Coc
 {
     private const string ClanId = "#2QU2UCJJC"; // 2G8LP8PVV
     private static readonly ClashOfClansClient s_client = new(Secrets.s_coc);
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    internal static ClanUtil Clan { get; private set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    internal static ClanUtil Clan { get; private set; } = new();
+    internal static event Action<ClanMember>? s_eventMemberJoined;
+    internal static event Action<ClanMember, string?>? s_eventMemberLeft;
+    internal static event Func<Dictionary<string, DonationTuple>, Task>? s_eventDonation;
+    internal static event Func<Dictionary<string, DonationTuple>, Task>? s_eventDonationFolded;
+
+    static Coc() => Dc.s_eventBotReady += BotReadyAsync;
+
+    private static async Task BotReadyAsync()
+    {
+        while (true)
+        {
+            try
+            {
+                await PollAsync();
+            }
+            catch (Exception ex)
+            {
+                await Dc.ExceptionAsync(ex);
+            }
+            await Task.Delay(20000);
+        }
+    }
 
     private static void CheckMembersJoined(ClanUtil clan)
     {
@@ -32,9 +52,9 @@ internal static class Coc
             Console.Error.WriteLine($"ERROR MembersJoined {membersMsg}");
         }
 
-        foreach (string id in clan._joiningMembers.Keys)
+        foreach (ClanMember m in clan._joiningMembers.Values)
         {
-            Donate25.MemberAdded(id);
+            s_eventMemberJoined!(m);
         }
     }
 
@@ -45,7 +65,7 @@ internal static class Coc
             return;
         }
 
-        foreach (string id in clan._leavingMembers.Keys)
+        foreach ((string id, ClanMember member) in clan._leavingMembers)
         {
             IEnumerable<Alt> alts = new Member(id).GetAltsByMain();
             string? altId = null;
@@ -59,9 +79,8 @@ internal static class Coc
                 }
                 alt.Delete();
             }
-            Donate25.MemberRemoved(id, altId);
+            s_eventMemberLeft!(member, altId);  // This is before Db.DelMem below so that we can remap Donation to new mainId
         }
-
 
         string[] members = [.. clan._leavingMembers.Keys];
         bool isSuccess = Db.DeleteMembers(members);
@@ -107,9 +126,7 @@ internal static class Coc
             {
                 donDelta[current.Tag] = new(current.Donations - previous.Donations, current.DonationsReceived - previous.DonationsReceived);
             }
-
         }
-
 
         foreach (KeyValuePair<string, DonationTuple> dd in donDelta)
         {
@@ -140,26 +157,16 @@ internal static class Coc
             Console.WriteLine($"{dd.Key}: {dd.Value._donated} {dd.Value._received}");
         }
 
-        // Everyone is main now, begin processing Donate25
-        foreach ((string tag, DonationTuple dt) in foldedDelta)
-        {
-            int donated = dt._donated;
-            int received = dt._received;
-
-            if (donated > received)
-            {
-                donated -= received;
-                Donation donation = Db.GetDonation(tag)!;
-                donation.Donated += (uint)donated;
-                Console.WriteLine($"[Donate25] {tag} {donated}");
-                Db.UpdateDonation(donation);
-            }
-        }
-
+        ICollection<Task> tasks = [];
         if (donDelta.Count > 0)
         {
-            await Dc.DonationsChangedAsync(donDelta);
+            tasks.Add(s_eventDonation!(donDelta));
         }
+        if (foldedDelta.Count > 0)
+        {
+            tasks.Add(s_eventDonationFolded!(foldedDelta));
+        }
+        await Task.WhenAll(tasks);
     }
 
     internal static string? GetMemberId(string name)
@@ -171,22 +178,4 @@ internal static class Coc
     internal static ClanMember GetMember(string id) => Clan._members[id];
 
     internal static async Task InitAsync() => Clan = ClanUtil.FromInit(await GetClanAsync());
-
-    internal static async Task BotReadyAsync()
-    {
-        Donate25.Init();
-        _ = Task.Run(Donate25.CheckAsync);
-        while (true)
-        {
-            try
-            {
-                await PollAsync();
-            }
-            catch (Exception ex)
-            {
-                await Dc.ExceptionAsync(ex);
-            }
-            await Task.Delay(20000);
-        }
-    }
 }

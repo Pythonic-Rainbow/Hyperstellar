@@ -9,14 +9,26 @@ namespace Hyperstellar.Discord;
 
 internal static class Dc
 {
+    private static SocketTextChannel s_botLog;
+    private static readonly InteractionService s_interactionSvc;
+    private static IApplication s_botApp;
+    private static readonly DiscordSocketClient s_bot = new();
+    internal static event Func<Task> s_eventBotReady;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    private static SocketTextChannel s_botLog;
-    private static InteractionService s_interactionSvc;
-    private static IApplication s_botApp;
+    static Dc()
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    {
+        s_interactionSvc = new(s_bot); // Dont make it inline instantiate because s_bot.Rest would still be null
+        s_interactionSvc.AddTypeConverter<Member>(new MemberConverter());
 
-    private static readonly DiscordSocketClient s_bot = new();
+        Coc.s_eventDonation += DonationsChangedAsync;
+        Donate25.s_eventViolated += Donate25Async;
+        s_bot.Log += Log;
+        s_bot.Ready += Ready;
+        s_bot.SlashCommandExecuted += SlashCmdXAsync;
+        s_interactionSvc.InteractionExecuted += InteractionXAsync;
+    }
 
     private static Task Log(LogMessage msg)
     {
@@ -27,7 +39,7 @@ internal static class Dc
     private static async Task Ready()
     {
         s_botLog = (SocketTextChannel)s_bot.GetChannel(Secrets.s_botLogId);
-        _ = Task.Run(Coc.BotReadyAsync);
+        _ = Task.Run(s_eventBotReady);
         await s_interactionSvc.RegisterCommandsGloballyAsync();
     }
 
@@ -45,22 +57,13 @@ internal static class Dc
         }
     }
 
-    internal static async Task InitAsync()
+    private static async Task Donate25Async(IEnumerable<string> violators)
     {
-        s_interactionSvc = new(s_bot); // Dont make it inline instantiate because s_bot.Rest would still be null
-        s_bot.Log += Log;
-        s_bot.Ready += Ready;
-        s_bot.SlashCommandExecuted += SlashCmdXAsync;
-        s_interactionSvc.InteractionExecuted += InteractionXAsync;
-
-        s_interactionSvc.AddTypeConverter<Member>(new MemberConverter());
-        await s_interactionSvc.AddModulesAsync(Assembly.GetEntryAssembly(), null);
-        await s_bot.LoginAsync(TokenType.Bot, Secrets.s_discord);
-        s_botApp = await s_bot.GetApplicationInfoAsync();
-        await s_bot.StartAsync();
+        IEnumerable<string> names = violators.Select(v => Coc.GetMember(v).Name);
+        await s_botLog.SendMessageAsync($"[Donate25] {string.Join(", ", names)}");
     }
 
-    internal static async Task DonationsChangedAsync(Dictionary<string, DonationTuple> donDelta)
+    private static async Task DonationsChangedAsync(Dictionary<string, DonationTuple> donDelta)
     {
         string msg = "[DNT] ";
         List<string> items = new(donDelta.Count / 2);
@@ -81,7 +84,13 @@ internal static class Dc
         await s_botLog.SendMessageAsync(msg);
     }
 
-    internal static async Task Donate25Async(IEnumerable<string> violators) => await s_botLog.SendMessageAsync($"[Donate25] {string.Join(", ", violators)}");
+    internal static async Task InitAsync()
+    {
+        await s_interactionSvc.AddModulesAsync(Assembly.GetEntryAssembly(), null);
+        await s_bot.LoginAsync(TokenType.Bot, Secrets.s_discord);
+        s_botApp = await s_bot.GetApplicationInfoAsync();
+        await s_bot.StartAsync();
+    }
 
     internal static async Task ExceptionAsync(Exception ex)
     {
