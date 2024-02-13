@@ -1,4 +1,4 @@
-using Hyperstellar.Sql;
+﻿using Hyperstellar.Sql;
 using Hyperstellar.Discord;
 using ClashOfClans.Models;
 
@@ -27,29 +27,50 @@ internal static class Donate25
         Init();
     }
 
+    private static void DebugQueue()
+    {
+        List<string> msgs = [];
+        foreach (Node node in s_queue)
+        {
+            msgs.Add($"[{node._checkTime}] {string.Join(", ", node._ids)}");
+        }
+        Console.WriteLine(string.Join("\n", msgs));
+    }
+
     private static void Init()
     {
         IEnumerable<IGrouping<long, Donation>> donationGroups = Db.GetDonations()
             .GroupBy(d => d.Checked)
             .OrderBy(g => g.Key);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        Node expiredNode = new(now.ToUnixTimeSeconds() + CheckPeriod); // Node for expired donations
 
-        // Init donate25 vars
         foreach (IGrouping<long, Donation> group in donationGroups)
         {
             DateTimeOffset lastChecked = DateTimeOffset.FromUnixTimeSeconds(group.Key);
-            DateTimeOffset now = DateTimeOffset.UtcNow;
             TimeSpan timePassed = now - lastChecked;
 
             // If bot was down when a check is due, we will be lenient and wait for another cycle
-            DateTimeOffset startingInstant = timePassed.TotalSeconds >= CheckPeriod ? now : lastChecked;
-            long targetTime = startingInstant.ToUnixTimeSeconds() + CheckPeriod;
-
-            Node node = new(targetTime);
-            foreach (Donation donation in group)
+            if (timePassed.TotalSeconds >= CheckPeriod)
             {
-                node._ids.Add(donation.MainId);
+                foreach (Donation donation in group)
+                {
+                    expiredNode._ids.Add(donation.MainId);
+                }
             }
-            s_queue.Enqueue(node);
+            else
+            {
+                Node node = new(lastChecked.ToUnixTimeSeconds() + CheckPeriod);
+                foreach (Donation donation in group)
+                {
+                    node._ids.Add(donation.MainId);
+                }
+                s_queue.Enqueue(node);
+            }
+        }
+        if (expiredNode._ids.Count > 0)
+        {
+            s_queue.Enqueue(expiredNode);
         }
 
         Console.WriteLine("[Donate25] Inited");
@@ -108,6 +129,7 @@ internal static class Donate25
             {
                 s_queue.Enqueue(node);
             }
+            DebugQueue();
 
             if (violators.Count > 0)
             {
