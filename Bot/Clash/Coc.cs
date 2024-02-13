@@ -1,4 +1,5 @@
 using ClashOfClans;
+using ClashOfClans.Core;
 using ClashOfClans.Models;
 using Hyperstellar.Discord;
 using Hyperstellar.Sql;
@@ -9,13 +10,14 @@ internal static class Coc
 {
     private const string ClanId = "#2QU2UCJJC"; // 2G8LP8PVV
     private static readonly ClashOfClansClient s_client = new(Secrets.s_coc);
+    private static bool s_inMaintenance;
     internal static ClanUtil Clan { get; private set; } = new();
     internal static event Action<ClanMember>? s_eventMemberJoined;
     internal static event Action<ClanMember, string?>? s_eventMemberLeft;
-    internal static event Func<Dictionary<string, DonationTuple>, Task>? s_eventDonation;
-    internal static event Func<Dictionary<string, DonationTuple>, Task>? s_eventDonationFolded;
+    internal static event Func<Dictionary<string, DonationTuple>, Task>? EventDonated;
+    internal static event Func<Dictionary<string, DonationTuple>, Task>? EventDonatedFold;
 
-    static Coc() => Dc.s_eventBotReady += BotReadyAsync;
+    static Coc() => Dc.EventBotReady += BotReadyAsync;
 
     private static async Task BotReadyAsync()
     {
@@ -24,12 +26,29 @@ internal static class Coc
             try
             {
                 await PollAsync();
+                s_inMaintenance = false;
+                await Task.Delay(10000);
+            }
+            catch (ClashOfClansException ex)
+            {
+                if (ex.Error.Reason == "inMaintenance")
+                {
+                    if (!s_inMaintenance)
+                    {
+                        s_inMaintenance = true;
+                        await Dc.SendLogAsync(ex.Error.Message);
+                    }
+                    await Task.Delay(60000);
+                }
+                else
+                {
+                    await Dc.ExceptionAsync(ex);
+                }
             }
             catch (Exception ex)
             {
                 await Dc.ExceptionAsync(ex);
             }
-            await Task.Delay(20000);
         }
     }
 
@@ -41,16 +60,9 @@ internal static class Coc
         }
 
         string[] members = [.. clan._joiningMembers.Keys];
-        bool isSuccess = Db.AddMembers(members);
+        Db.AddMembers(members);
         string membersMsg = string.Join(", ", members);
-        if (isSuccess)
-        {
-            Console.WriteLine($"{membersMsg} joined");
-        }
-        else
-        {
-            Console.Error.WriteLine($"ERROR MembersJoined {membersMsg}");
-        }
+        Console.WriteLine($"{membersMsg} joined");
 
         foreach (ClanMember m in clan._joiningMembers.Values)
         {
@@ -83,16 +95,9 @@ internal static class Coc
         }
 
         string[] members = [.. clan._leavingMembers.Keys];
-        bool isSuccess = Db.DeleteMembers(members);
+        Db.DeleteMembers(members);
         string membersMsg = string.Join(", ", members);
-        if (isSuccess)
-        {
-            Console.WriteLine($"{membersMsg} left");
-        }
-        else
-        {
-            Console.Error.WriteLine($"ERROR MembersLeft {membersMsg}");
-        }
+        Console.WriteLine($"{membersMsg} left");
     }
 
     private static async Task<Clan> GetClanAsync() => await s_client.Clans.GetClanAsync(ClanId);
@@ -160,11 +165,11 @@ internal static class Coc
         ICollection<Task> tasks = [];
         if (donDelta.Count > 0)
         {
-            tasks.Add(s_eventDonation!(donDelta));
+            tasks.Add(EventDonated!(donDelta));
         }
         if (foldedDelta.Count > 0)
         {
-            tasks.Add(s_eventDonationFolded!(foldedDelta));
+            tasks.Add(EventDonatedFold!(foldedDelta));
         }
         await Task.WhenAll(tasks);
     }

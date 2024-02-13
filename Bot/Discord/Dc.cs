@@ -13,7 +13,7 @@ internal static class Dc
     private static readonly InteractionService s_interactionSvc;
     private static IApplication s_botApp;
     private static readonly DiscordSocketClient s_bot = new();
-    internal static event Func<Task> s_eventBotReady;
+    internal static event Func<Task> EventBotReady;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     static Dc()
@@ -22,8 +22,8 @@ internal static class Dc
         s_interactionSvc = new(s_bot); // Dont make it inline instantiate because s_bot.Rest would still be null
         s_interactionSvc.AddTypeConverter<Member>(new MemberConverter());
 
-        Coc.s_eventDonation += DonationsChangedAsync;
-        Donate25.s_eventViolated += Donate25Async;
+        Coc.EventDonated += DonationsChangedAsync;
+        Donate25.EventViolated += Donate25Async;
         s_bot.Log += Log;
         s_bot.Ready += Ready;
         s_bot.SlashCommandExecuted += SlashCmdXAsync;
@@ -39,7 +39,7 @@ internal static class Dc
     private static async Task Ready()
     {
         s_botLog = (SocketTextChannel)s_bot.GetChannel(Secrets.s_botLogId);
-        _ = Task.Run(s_eventBotReady);
+        _ = Task.Run(EventBotReady);
         await s_interactionSvc.RegisterCommandsGloballyAsync();
     }
 
@@ -59,7 +59,7 @@ internal static class Dc
 
     private static async Task Donate25Async(IEnumerable<string> violators)
     {
-        IEnumerable<string> names = violators.Select(v => Coc.GetMember(v).Name);
+        IEnumerable<string> names = violators.Select(v => $"{Coc.GetMember(v).Name} ({v})");
         await s_botLog.SendMessageAsync($"[Donate25] {string.Join(", ", names)}");
     }
 
@@ -112,4 +112,6 @@ internal static class Dc
         }
         await s_botLog.SendMessageAsync(s_botApp.Owner.Mention, embed: emb.Build());
     }
+
+    internal static async Task SendLogAsync(string msg) => await s_botLog.SendMessageAsync(msg);
 }

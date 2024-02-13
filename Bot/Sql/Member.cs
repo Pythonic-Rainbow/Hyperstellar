@@ -4,7 +4,7 @@ using SQLite;
 namespace Hyperstellar.Sql;
 public class Member
 {
-    internal static event Action<Alt>? s_eventAltAdded;
+    internal static event Action<Alt>? EventAltAdded;
 
     [PrimaryKey, NotNull]
     public string CocId { get; set; }
@@ -26,7 +26,7 @@ public class Member
     {
         Alt alt = new(altMember.CocId, CocId);
         Db.s_db.Insert(alt);
-        s_eventAltAdded!(alt);
+        EventAltAdded!(alt);
     }
 
     public bool IsAlt()

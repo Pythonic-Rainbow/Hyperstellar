@@ -1,4 +1,4 @@
-﻿using Hyperstellar.Sql;
+using Hyperstellar.Sql;
 using Hyperstellar.Discord;
 using ClashOfClans.Models;
 
@@ -15,15 +15,15 @@ internal static class Donate25
     private const int TargetPerPerson = 25; // The donation target per week per person
     private const long CheckPeriod = 7 * 24 * 3600; // Seconds
     private static readonly Queue<Node> s_queue = [];  // Queue for the await task
-    internal static event Func<List<string>, Task>? s_eventViolated;
+    internal static event Func<List<string>, Task>? EventViolated;
 
     static Donate25()
     {
         Coc.s_eventMemberJoined += MemberAdded;
         Coc.s_eventMemberLeft += MemberLeft;
-        Coc.s_eventDonationFolded += DonationChanged;
-        Dc.s_eventBotReady += BotReadyAsync;
-        Member.s_eventAltAdded += AltAdded;
+        Coc.EventDonatedFold += DonationChanged;
+        Dc.EventBotReady += BotReadyAsync;
+        Member.EventAltAdded += AltAdded;
         Init();
     }
 
@@ -111,7 +111,7 @@ internal static class Donate25
 
             if (violators.Count > 0)
             {
-                await s_eventViolated!(violators);
+                await EventViolated!(violators);
             }
         }
     }
