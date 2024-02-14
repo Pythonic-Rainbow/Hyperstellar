@@ -32,7 +32,7 @@ internal static class Donate25
         List<string> msgs = [];
         foreach (Node node in s_queue)
         {
-            msgs.Add($"[{node._checkTime}] {string.Join(", ", node._ids)}");
+            msgs.Add($"[{node._checkTime} {DateTimeOffset.FromUnixTimeSeconds(node._checkTime)}] {string.Join(", ", node._ids)}");
         }
         Console.WriteLine(string.Join("\n", msgs));
     }
@@ -48,10 +48,9 @@ internal static class Donate25
         foreach (IGrouping<long, Donation> group in donationGroups)
         {
             DateTimeOffset lastChecked = DateTimeOffset.FromUnixTimeSeconds(group.Key);
-            TimeSpan timePassed = now - lastChecked;
 
             // If bot was down when a check is due, we will be lenient and wait for another cycle
-            if (timePassed.TotalSeconds >= CheckPeriod)
+            if (now >= lastChecked)
             {
                 foreach (Donation donation in group)
                 {
@@ -60,7 +59,7 @@ internal static class Donate25
             }
             else
             {
-                Node node = new(lastChecked.ToUnixTimeSeconds() + CheckPeriod);
+                Node node = new(group.Key);
                 foreach (Donation donation in group)
                 {
                     node._ids.Add(donation.MainId);
@@ -72,7 +71,7 @@ internal static class Donate25
         {
             s_queue.Enqueue(expiredNode);
         }
-
+        DebugQueue();
         Console.WriteLine("[Donate25] Inited");
     }
 
