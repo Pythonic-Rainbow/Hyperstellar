@@ -55,6 +55,8 @@ internal static class Donate25
                 foreach (Donation donation in group)
                 {
                     expiredNode._ids.Add(donation.MainId);
+                    donation.Checked = now.ToUnixTimeSeconds();
+                    donation.Update();
                 }
             }
             else
