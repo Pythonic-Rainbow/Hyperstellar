@@ -1,4 +1,5 @@
 ﻿using ClashOfClans.Models;
+using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Hyperstellar.Dc.Attr;
@@ -69,10 +70,21 @@ public class Cmds : InteractionModuleBase
         await RespondAsync($"`{clanAlt.Name}` is an alt of `{clanMain.Name}`");
     }
 
-    [SlashCommand("info", "Check the User's infomation")]
+    [SlashCommand("info", "Print the member's infomation")]
     public async Task InfoAsync(Member member)
     {
         ClanMember cocMem = Coc.GetMember(member.CocId);
-        await RespondAsync($"{cocMem.Tag} {cocMem.Name}");
+
+        var embed = new EmbedBuilder
+        {
+            Title = cocMem.Name,
+            Author = new EmbedAuthorBuilder
+            {
+                Name = cocMem.Tag,
+            },
+
+        };
+
+        await RespondAsync(embed: embed.Build());
     }
 }
