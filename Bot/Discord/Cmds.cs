@@ -2,10 +2,11 @@
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
-using Hyperstellar.Dc.Attr;
+using Hyperstellar.Discord.Attr;
 using Hyperstellar.Sql;
+using Hyperstellar.Clash;
 
-namespace Hyperstellar.Dc;
+namespace Hyperstellar.Discord;
 
 public class Cmds : InteractionModuleBase
 {
@@ -67,7 +68,7 @@ public class Cmds : InteractionModuleBase
         main.AddAlt(alt);
         ClanMember clanAlt = Coc.GetMember(alt.CocId);
         ClanMember clanMain = Coc.GetMember(main.CocId);
-        await RespondAsync($"`{clanAlt.Name}` is an alt of `{clanMain.Name}`");
+        await RespondAsync($"`{clanAlt.Name}` is now an alt of `{clanMain.Name}`");
     }
 
     [SlashCommand("info", "Print the member's infomation")]

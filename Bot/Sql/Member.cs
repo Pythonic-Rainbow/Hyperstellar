@@ -1,10 +1,14 @@
-﻿using SQLite;
+﻿using Hyperstellar.Clash;
+using SQLite;
 
 namespace Hyperstellar.Sql;
 public class Member
 {
+    internal static event Action<Alt>? EventAltAdded;
+
     [PrimaryKey, NotNull]
     public string CocId { get; set; }
+
     [Unique]
     public ulong? DiscordId { get; set; }
 
@@ -22,17 +26,24 @@ public class Member
     {
         Alt alt = new(altMember.CocId, CocId);
         Db.s_db.Insert(alt);
+        EventAltAdded!(alt);
     }
 
     public bool IsAlt()
     {
         TableQuery<Alt> result = Db.s_db.Table<Alt>().Where(a => a.AltId == CocId);
-        return result.Count() > 0;
+        return result.Any();
     }
 
     public bool IsAltMain()
     {
         TableQuery<Alt> result = Db.s_db.Table<Alt>().Where(a => a.MainId == CocId);
-        return result.Count() > 0;
+        return result.Any();
     }
+
+    public Alt? TryToAlt() => Db.s_db.Table<Alt>().FirstOrDefault(a => a.AltId == CocId);
+
+    public TableQuery<Alt> GetAltsByMain() => Db.s_db.Table<Alt>().Where(a => a.MainId == CocId);
+
+    public string GetName() => Coc.GetMember(CocId).Name;
 }

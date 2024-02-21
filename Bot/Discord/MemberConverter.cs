@@ -1,12 +1,13 @@
 ﻿using Discord;
 using Discord.Interactions;
+using Hyperstellar.Clash;
 using Hyperstellar.Sql;
 
-namespace Hyperstellar.Dc;
+namespace Hyperstellar.Discord;
 
 internal sealed class MemberConverter : TypeConverter
 {
-    public override bool CanConvertTo(System.Type type) => typeof(Member).IsAssignableFrom(type);
+    public override bool CanConvertTo(Type type) => typeof(Member).IsAssignableFrom(type);
     public override ApplicationCommandOptionType GetDiscordType() => ApplicationCommandOptionType.String;
     public override Task<TypeConverterResult> ReadAsync(IInteractionContext context, IApplicationCommandInteractionDataOption option, IServiceProvider services)
     {

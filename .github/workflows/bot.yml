@@ -5,10 +5,10 @@ name: C# bot
 
 on:
   push:
-    branches: [ "main", "debug-workflow" ]
+    # branches: [ "main", "debug-workflow" ]
     paths: ["**.cs", ".github/workflows/bot.yml"]
   pull_request:
-    branches: [ "main" ]
+    # branches: [ "main" ]
     paths: ["**.cs", ".github/workflows/bot.yml"]
 
 defaults:
@@ -21,7 +21,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
     - name: Build
@@ -39,7 +39,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
     - name: Restore

@@ -2,7 +2,7 @@
 
 namespace Hyperstellar.Sql;
 
-internal sealed class Db
+internal static class Db
 {
     internal static readonly SQLiteConnection s_db = new("Hyperstellar.db");
     internal static readonly HashSet<ulong> s_admins = s_db.Table<BotAdmin>().Select(a => a.Id).ToHashSet();
@@ -10,7 +10,6 @@ internal sealed class Db
     internal static void Commit()
     {
         s_db.Commit();
-        Console.WriteLine("Db committed");
         s_db.BeginTransaction();
     }
 
@@ -23,23 +22,21 @@ internal sealed class Db
         return memberCount == donationCount && memberCount == members.Length;
     }
 
-    internal static bool RemoveMembers(string[] members)
-    {
-        int count = 0;
-        foreach (string member in members)
-        {
-            count += s_db.Delete<Member>(member);
-        }
-        return count == members.Length;
-    }
+    internal static bool DeleteMembers(string[] members) => members.Sum(s_db.Delete<Member>) == members.Length;
 
-    internal static Member? GetMember(string member) => s_db.Table<Member>().Where(m => m.CocId.Equals(member)).FirstOrDefault();
+    internal static Member? GetMember(string member) => s_db.Table<Member>().FirstOrDefault(m => m.CocId.Equals(member));
 
-    internal static bool HasMember(string member) => s_db.Table<Member>().Where(m => m.CocId.Equals(member)).Count() == 1;
+    internal static Donation? GetDonation(string id) => s_db.Table<Donation>().FirstOrDefault(d => d.MainId == id);
+
+    internal static IEnumerable<Donation> GetDonations() => s_db.Table<Donation>();
+
+    internal static bool UpdateDonation(Donation donation) => s_db.Update(donation) == 1;
+
+    internal static Alt? GetAlt(string altId) => s_db.Table<Alt>().FirstOrDefault(a => a.AltId == altId);
 
     internal static bool AddAdmin(ulong id)
     {
-        var admin = new BotAdmin(id);
+        BotAdmin admin = new(id);
         int count = s_db.Insert(admin);
         s_admins.Add(id);
         return count == 1;

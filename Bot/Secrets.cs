@@ -2,7 +2,7 @@
 
 namespace Hyperstellar;
 
-internal sealed class Secrets
+internal static class Secrets
 {
     internal static readonly string s_discord;  // Your Discord bot token
     internal static readonly string s_coc;  // Your coc token

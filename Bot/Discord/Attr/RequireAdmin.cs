@@ -2,7 +2,7 @@
 using Discord.Interactions;
 using Hyperstellar.Sql;
 
-namespace Hyperstellar.Dc.Attr;
+namespace Hyperstellar.Discord.Attr;
 
 internal sealed class RequireAdmin : PreconditionAttribute
 {
