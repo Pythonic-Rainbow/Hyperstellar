@@ -12,8 +12,8 @@ internal static class Coc
     private static readonly ClashOfClansClient s_client = new(Secrets.s_coc);
     private static bool s_inMaintenance;
     internal static ClanUtil Clan { get; private set; } = new();
-    internal static event Action<ClanMember>? s_eventMemberJoined;
-    internal static event Action<ClanMember, string?>? s_eventMemberLeft;
+    internal static event Action<ClanMember, Main>? EventMemberJoined;
+    internal static event Action<ClanMember, string?>? EventMemberLeft;
     internal static event Func<Dictionary<string, DonationTuple>, Task>? EventDonated;
     internal static event Func<Dictionary<string, DonationTuple>, Task>? EventDonatedFold;
 
@@ -66,7 +66,9 @@ internal static class Coc
 
         foreach (ClanMember m in clan._joiningMembers.Values)
         {
-            s_eventMemberJoined!(m);
+            Main main = new(m.Tag);
+            EventMemberJoined!(m, main);
+            main.Insert();
         }
     }
 
@@ -81,6 +83,8 @@ internal static class Coc
         {
             IEnumerable<Alt> alts = new Member(id).GetAltsByMain();
             string? altId = null;
+            Main main = Db.GetMain(id)!;
+            main.Delete();
             if (alts.Any())
             {
                 Alt alt = alts.First();
@@ -90,8 +94,13 @@ internal static class Coc
                     alts.ElementAt(i).UpdateMain(alt.AltId);
                 }
                 alt.Delete();
+                // Maybe adapt this in the future if need to modify attributes when replacing main
+                main.MainId = altId;
+                main.Insert();
             }
-            s_eventMemberLeft!(member, altId);  // This is before Db.DelMem below so that we can remap Donation to new mainId
+            // This is before Db.DelMem below so that we can remap Donation to new mainId
+            // ^ No longer true because the remap is done ABOVE now but I'll still leave this comment
+            EventMemberLeft!(member, altId);
         }
 
         string[] members = [.. clan._leavingMembers.Keys];

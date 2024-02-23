@@ -19,8 +19,8 @@ internal static class Donate25
 
     static Donate25()
     {
-        Coc.s_eventMemberJoined += MemberAdded;
-        Coc.s_eventMemberLeft += MemberLeft;
+        Coc.EventMemberJoined += MemberAdded;
+        Coc.EventMemberLeft += MemberLeft;
         Coc.EventDonatedFold += DonationChanged;
         Dc.EventBotReady += BotReadyAsync;
         Member.EventAltAdded += AltAdded;
@@ -39,32 +39,33 @@ internal static class Donate25
 
     private static void Init()
     {
-        IEnumerable<IGrouping<long, Donation>> donationGroups = Db.GetDonations()
+        IEnumerable<IGrouping<long, Main>> donationGroups = Db.GetDonations()
             .GroupBy(d => d.Checked)
             .OrderBy(g => g.Key);
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        Node expiredNode = new(now.ToUnixTimeSeconds() + CheckPeriod); // Node for expired donations
+        Node expiredNode = new(GetNowNextTime()); // Node for expired donations
 
-        foreach (IGrouping<long, Donation> group in donationGroups)
+        foreach (IGrouping<long, Main> group in donationGroups)
         {
             DateTimeOffset lastChecked = DateTimeOffset.FromUnixTimeSeconds(group.Key);
 
             // If bot was down when a check is due, we will be lenient and wait for another cycle
             if (now >= lastChecked)
             {
-                foreach (Donation donation in group)
+                foreach (Main main in group)
                 {
-                    expiredNode._ids.Add(donation.MainId);
-                    donation.Checked = now.ToUnixTimeSeconds();
-                    donation.Update();
+                    expiredNode._ids.Add(main.MainId);
+                    main.Checked = expiredNode._checkTime;
+                    main.Donated = 0;
+                    main.Update();
                 }
             }
             else
             {
                 Node node = new(group.Key);
-                foreach (Donation donation in group)
+                foreach (Main main in group)
                 {
-                    node._ids.Add(donation.MainId);
+                    node._ids.Add(main.MainId);
                 }
                 s_queue.Enqueue(node);
             }
@@ -111,8 +112,8 @@ internal static class Donate25
                 IEnumerable<Alt> alts = new Member(member).GetAltsByMain();
                 int altCount = alts.Count();
                 int donationTarget = TargetPerPerson * (altCount + 1);
-                Donation donation = Db.GetDonation(member)!;
-                if (donation.Donated >= donationTarget)
+                Main main = Db.GetMain(member)!;
+                if (main.Donated >= donationTarget)
                 {
                     Console.WriteLine($"[Donate25] {member} new cycle");
                 }
@@ -121,9 +122,9 @@ internal static class Donate25
                     violators.Add(member);
                     Console.WriteLine($"[Donate25] {member} violated");
                 }
-                donation.Donated = 0;
-                donation.Checked = node._checkTime;
-                donation.Update();
+                main.Donated = 0;
+                main.Checked = node._checkTime;
+                main.Update();
             }
 
             if (node._ids.Count > 0)
@@ -149,38 +150,35 @@ internal static class Donate25
             if (donated > received)
             {
                 donated -= received;
-                Donation donation = Db.GetDonation(tag)!;
-                donation.Donated += (uint)donated;
+                Main main = Db.GetMain(tag)!;
+                main.Donated += (uint)donated;
                 Console.WriteLine($"[Donate25] {tag} {donated}");
-                Db.UpdateDonation(donation);
+                Db.UpdateMain(main);
             }
         }
         return Task.CompletedTask;
     }
 
-    private static void AltAdded(Alt alt)
+    private static void AltAdded(Main altMain, Main mainMain)
     {
-        string altId = alt.AltId, mainId = alt.MainId;
+        string altId = altMain.MainId, mainId = mainMain.MainId;
         Console.WriteLine($"[Donate25] Removing {altId} -> {mainId} (addalt)");
         Node? node = s_queue.FirstOrDefault(n => n._ids.Remove(altId));
         if (node != null)
         {
             Console.WriteLine($"[Donate25] Removed {altId} in {node._checkTime}");
             node._ids.Add(mainId);
-            Donation altDon = Db.GetDonation(altId)!;
-            Donation mainDon = Db.GetDonation(mainId)!;
-            altDon.Delete();
-            mainDon.Donated += altDon.Donated;
-            mainDon.Update();
+            mainMain.Donated += altMain.Donated;
             Console.WriteLine($"[Donate25] Added {mainId} because it replaced {altId} as main");
         }
     }
 
-    private static void MemberAdded(ClanMember member)
+    private static void MemberAdded(ClanMember member, Main main)
     {
+        main.Checked = GetNowNextTime();
         string id = member.Tag;
         Console.WriteLine($"[Donate25] Adding {id}");
-        long targetTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + CheckPeriod;
+        long targetTime = GetNowNextTime();
         Node node = s_queue.Last();  // We expect at least 1 member in the db
         if (targetTime == node._checkTime)
         {
@@ -211,12 +209,10 @@ internal static class Donate25
             if (newMainId != null)
             {
                 node._ids.Add(newMainId);
-                Donation donation = Db.GetDonation(id)!;
-                donation.Delete();
-                donation.MainId = newMainId;
-                donation.Insert();
                 Console.WriteLine($"[Donate25] Added {newMainId} because it replaced {id} as main");
             }
         }
     }
+
+    private static long GetNowNextTime() => DateTimeOffset.UtcNow.ToUnixTimeSeconds() + CheckPeriod;
 }
