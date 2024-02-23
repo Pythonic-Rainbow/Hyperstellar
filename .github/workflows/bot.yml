@@ -39,6 +39,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
+      id: setup-dotnet
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.101
@@ -51,3 +52,4 @@ jobs:
         solutionPath: './Bot.sln'
         noBuild: true
         minimumSeverity: 'warning'
+        dotnetVersion: ${{ steps.setup-dotnet.outputs.dotnet-version }}
