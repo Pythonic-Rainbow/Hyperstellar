@@ -10,7 +10,7 @@ internal static class Coc
 {
     private const string ClanId = "#2QU2UCJJC"; // 2G8LP8PVV
     private static readonly ClashOfClansClient s_client = new(Secrets.s_coc);
-    private static bool s_inMaintenance;
+    private static ClashOfClansException? s_exception;
     internal static ClanUtil Clan { get; private set; } = new();
     internal static event Action<ClanMember, Main>? EventMemberJoined;
     internal static event Action<ClanMember, string?>? EventMemberLeft;
@@ -26,28 +26,22 @@ internal static class Coc
             try
             {
                 await PollAsync();
-                s_inMaintenance = false;
+                s_exception = null;
                 await Task.Delay(10000);
             }
             catch (ClashOfClansException ex)
             {
-                if (ex.Error.Reason == "inMaintenance")
+                if (s_exception == null || s_exception.Error.Reason != ex.Error.Reason || s_exception.Error.Message != ex.Error.Message)
                 {
-                    if (!s_inMaintenance)
-                    {
-                        s_inMaintenance = true;
-                        await Dc.SendLogAsync(ex.Error.Message);
-                    }
-                    await Task.Delay(60000);
-                }
-                else
-                {
+                    s_exception = ex;
                     await Dc.ExceptionAsync(ex);
                 }
+                await Task.Delay(60000);
             }
             catch (Exception ex)
             {
                 await Dc.ExceptionAsync(ex);
+                await Task.Delay(60000);
             }
         }
     }
