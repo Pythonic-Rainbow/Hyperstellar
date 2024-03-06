@@ -4,7 +4,7 @@ using ClashOfClans.Models;
 
 namespace Hyperstellar.Clash;
 
-internal static class Donate25
+internal static class Phaser
 {
     private sealed class Node(long time)
     {
@@ -17,13 +17,16 @@ internal static class Donate25
     private static readonly Queue<Node> s_queue = [];  // Queue for the await task
     internal static event Func<List<string>, Task>? EventViolated;
 
-    static Donate25()
+    static Phaser()
     {
         Coc.EventMemberJoined += MemberAdded;
         Coc.EventMemberLeft += MemberLeft;
         Coc.EventDonatedFold += DonationChanged;
+        Coc.EventInitRaid += InitRaid;
+        Coc.EventRaidCompleted += ProcessRaid;
         Dc.EventBotReady += BotReadyAsync;
         Member.EventAltAdded += AltAdded;
+
         Init();
     }
 
@@ -35,6 +38,21 @@ internal static class Donate25
             msgs.Add($"[{node._checkTime} {DateTimeOffset.FromUnixTimeSeconds(node._checkTime)}] {string.Join(", ", node._ids)}");
         }
         Console.WriteLine(string.Join("\n", msgs));
+    }
+
+    private static void ProcessRaid(ClanCapitalRaidSeason season)
+    {
+        foreach (ClanCapitalRaidSeasonAttacker atk in Coc.GetRaidAttackers(season))
+        {
+            // If in the db, mark as raided
+            Member? member = Db.GetMember(atk.Tag);
+            if (member != null)
+            {
+                Main main = member.GetEffectiveMain();
+                main.Raided = true;
+                main.Update();
+            }
+        }
     }
 
     private static void Init()
@@ -76,68 +94,6 @@ internal static class Donate25
         }
         DebugQueue();
         Console.WriteLine("[Donate25] Inited");
-    }
-
-    private static async Task BotReadyAsync()
-    {
-        try
-        {
-            await CheckQueueAsync();
-        }
-        catch (Exception ex)
-        {
-            await Dc.ExceptionAsync(ex);
-        }
-    }
-
-    private static async Task CheckQueueAsync()
-    {
-        while (s_queue.Count > 0)
-        {
-            Node node = s_queue.First();
-            if (node._ids.Count == 0)
-            {
-                s_queue.Dequeue();
-                continue;
-            }
-
-            int waitDelay = (int)((node._checkTime * 1000) - DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-            await Task.Delay(waitDelay);
-
-            node = s_queue.Dequeue();
-            node._checkTime += CheckPeriod;
-            List<string> violators = [];
-            foreach (string member in node._ids)
-            {
-                IEnumerable<Alt> alts = new Member(member).GetAltsByMain();
-                int altCount = alts.Count();
-                int donationTarget = TargetPerPerson * (altCount + 1);
-                Main main = Db.GetMain(member)!;
-                if (main.Donated >= donationTarget)
-                {
-                    Console.WriteLine($"[Donate25] {member} new cycle");
-                }
-                else
-                {
-                    violators.Add(member);
-                    Console.WriteLine($"[Donate25] {member} violated");
-                }
-                main.Donated = 0;
-                main.Checked = node._checkTime;
-                main.Update();
-            }
-
-            if (node._ids.Count > 0)
-            {
-                s_queue.Enqueue(node);
-            }
-            DebugQueue();
-
-            if (violators.Count > 0)
-            {
-                await EventViolated!(violators);
-            }
-        }
     }
 
     private static Task DonationChanged(Dictionary<string, DonationTuple> foldedDelta)
@@ -214,5 +170,92 @@ internal static class Donate25
         }
     }
 
+    private static void InitRaid(ClanCapitalRaidSeason season)
+    {
+        if (!IsDatetimeExpired(season.StartTime))
+        {
+            ProcessRaid(season);
+        }
+    }
+
     private static long GetNowNextTime() => DateTimeOffset.UtcNow.ToUnixTimeSeconds() + CheckPeriod;
+
+    private static async Task BotReadyAsync()
+    {
+        try
+        {
+            await CheckQueueAsync();
+        }
+        catch (Exception ex)
+        {
+            await Dc.ExceptionAsync(ex);
+        }
+    }
+
+    private static async Task CheckQueueAsync()
+    {
+        while (s_queue.Count > 0)
+        {
+            Node node = s_queue.First();
+            if (node._ids.Count == 0)
+            {
+                s_queue.Dequeue();
+                continue;
+            }
+
+            int waitDelay = (int)((node._checkTime * 1000) - DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+            await Task.Delay(waitDelay);
+
+            node = s_queue.Dequeue();
+            node._checkTime += CheckPeriod;
+            List<string> violators = [];
+            List<string> violators2 = [];
+            foreach (string member in node._ids)
+            {
+                IEnumerable<Alt> alts = new Member(member).GetAltsByMain();
+                int altCount = alts.Count();
+                int donationTarget = TargetPerPerson * (altCount + 1);
+                Main main = Db.GetMain(member)!;
+                if (main.Donated >= donationTarget)
+                {
+                    Console.WriteLine($"[Donate25] {member} new cycle");
+                }
+                else
+                {
+                    violators.Add(member);
+                    Console.WriteLine($"[Donate25] {member} violated");
+                }
+                if (!main.Raided)
+                {
+                    violators2.Add(member);
+                    Console.WriteLine($"[Phaser] {member} not raided");
+                }
+                else
+                {
+                    Console.WriteLine($"[Phaser] {member} raided");
+                }
+                main.Donated = 0;
+                main.Raided = false;
+                main.Checked = node._checkTime;
+                main.Update();
+            }
+
+            if (node._ids.Count > 0)
+            {
+                s_queue.Enqueue(node);
+            }
+            DebugQueue();
+
+            if (violators.Count > 0)
+            {
+                await EventViolated!(violators);
+            }
+            if (violators2.Count > 0)
+            {
+                await EventViolated!(violators2);
+            }
+        }
+    }
+
+    internal static bool IsDatetimeExpired(DateTimeOffset time) => (DateTimeOffset.UtcNow - time).TotalSeconds >= CheckPeriod;
 }

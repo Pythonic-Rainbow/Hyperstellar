@@ -16,6 +16,9 @@ public sealed class Main(string id)
     [Unique]
     public ulong? Discord { get; set; }
 
+    [NotNull]
+    public bool Raided { get; set; }
+
     public Main() : this("") { }
 
     public bool Delete() => Db.s_db.Delete(this) == 1;

@@ -45,4 +45,11 @@ public class Member(string cocId)
     public TableQuery<Alt> GetAltsByMain() => Db.s_db.Table<Alt>().Where(a => a.MainId == CocId);
 
     public string GetName() => Coc.GetMember(CocId).Name;
+
+    public Main GetEffectiveMain()
+    {
+        Alt? alt = TryToAlt();
+        string mainId = alt == null ? CocId : alt.MainId;
+        return Db.s_db.Table<Main>().First(m => m.MainId == mainId);
+    }
 }
