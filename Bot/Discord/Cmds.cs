@@ -5,6 +5,7 @@ using Discord.WebSocket;
 using Hyperstellar.Discord.Attr;
 using Hyperstellar.Sql;
 using Hyperstellar.Clash;
+using Discord;
 
 namespace Hyperstellar.Discord;
 
@@ -87,5 +88,24 @@ public class Cmds : InteractionModuleBase
         };
 
         await RespondAsync(embed: embed.Build());
+
+    [RequireAdmin]
+    [SlashCommand("link", "[Admin] Links a Discord account to a Main")]
+    public async Task LinkAsync(Member coc, IGuildUser discord)
+    {
+        Main? main = coc.TryToMain();
+        if (main == null)
+        {
+            await RespondAsync("`coc` can't be an alt!");
+            return;
+        }
+        if (discord.IsBot)
+        {
+            await RespondAsync("`discord` can't be a bot!");
+            return;
+        }
+        main.Discord = discord.Id;
+        main.Update();
+        await RespondAsync("Linked");
     }
 }

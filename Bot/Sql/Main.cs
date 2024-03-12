@@ -2,7 +2,7 @@
 
 namespace Hyperstellar.Sql;
 
-internal sealed class Donation(string id, long checkTime)
+public sealed class Main(string id)
 {
     [PrimaryKey, NotNull]
     public string MainId { get; set; } = id;
@@ -11,11 +11,15 @@ internal sealed class Donation(string id, long checkTime)
     public uint Donated { get; set; }
 
     [NotNull]
-    public long Checked { get; set; } = checkTime;
+    public long Checked { get; set; }
 
-    public Donation() : this("") { }
+    [Unique]
+    public ulong? Discord { get; set; }
 
-    public Donation(string id) : this(id, DateTimeOffset.UtcNow.ToUnixTimeSeconds()) { }
+    [NotNull]
+    public bool Raided { get; set; }
+
+    public Main() : this("") { }
 
     public bool Delete() => Db.s_db.Delete(this) == 1;
 

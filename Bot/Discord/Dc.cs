@@ -23,7 +23,7 @@ internal static class Dc
         s_interactionSvc.AddTypeConverter<Member>(new MemberConverter());
 
         Coc.EventDonated += DonationsChangedAsync;
-        Donate25.EventViolated += Donate25Async;
+        Phaser.EventViolated += Donate25Async;
         s_bot.Log += Log;
         s_bot.Ready += Ready;
         s_bot.SlashCommandExecuted += SlashCmdXAsync;

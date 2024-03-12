@@ -2,31 +2,28 @@
 using SQLite;
 
 namespace Hyperstellar.Sql;
-public class Member
+public class Member(string cocId)
 {
-    internal static event Action<Alt>? EventAltAdded;
+    internal static event Action<Main, Main>? EventAltAdded;
 
     [PrimaryKey, NotNull]
-    public string CocId { get; set; }
-
-    [Unique]
-    public ulong? DiscordId { get; set; }
+    public string CocId { get; set; } = cocId;
 
     public Member() : this("") { }
-
-    public Member(string cocId) => CocId = cocId;
-
-    public Member(string cocId, ulong discordId)
-    {
-        CocId = cocId;
-        DiscordId = discordId;
-    }
 
     public void AddAlt(Member altMember)
     {
         Alt alt = new(altMember.CocId, CocId);
         Db.s_db.Insert(alt);
-        EventAltAdded!(alt);
+        Main altMain = Db.GetMain(altMember.CocId)!;
+        Main mainMain = Db.GetMain(CocId)!;
+        EventAltAdded!(altMain, mainMain);
+        if (altMain.Discord != null)
+        {
+            mainMain.Discord = altMain.Discord;
+        }
+        mainMain.Update();
+        altMain.Delete();
     }
 
     public bool IsAlt()
@@ -43,7 +40,16 @@ public class Member
 
     public Alt? TryToAlt() => Db.s_db.Table<Alt>().FirstOrDefault(a => a.AltId == CocId);
 
+    public Main? TryToMain() => Db.s_db.Table<Main>().FirstOrDefault(m => m.MainId == CocId);
+
     public TableQuery<Alt> GetAltsByMain() => Db.s_db.Table<Alt>().Where(a => a.MainId == CocId);
 
     public string GetName() => Coc.GetMember(CocId).Name;
+
+    public Main GetEffectiveMain()
+    {
+        Alt? alt = TryToAlt();
+        string mainId = alt == null ? CocId : alt.MainId;
+        return Db.s_db.Table<Main>().First(m => m.MainId == mainId);
+    }
 }
