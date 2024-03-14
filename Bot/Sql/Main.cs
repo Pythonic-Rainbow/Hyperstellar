@@ -17,7 +17,7 @@ public sealed class Main(string id)
     public ulong? Discord { get; set; }
 
     [NotNull]
-    public bool Raided { get; set; }
+    public uint Raided { get; set; }
 
     public Main() : this("") { }
 

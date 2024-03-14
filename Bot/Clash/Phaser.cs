@@ -15,7 +15,7 @@ internal static class Phaser
     private const int TargetPerPerson = 25; // The donation target per week per person
     private const long CheckPeriod = 7 * 24 * 3600; // Seconds
     private static readonly Queue<Node> s_queue = [];  // Queue for the await task
-    internal static event Func<List<string>, Task>? EventViolated;
+    internal static event Func<List<Violator>, Task>? EventViolated;
 
     static Phaser()
     {
@@ -49,7 +49,7 @@ internal static class Phaser
             if (member != null)
             {
                 Main main = member.GetEffectiveMain();
-                main.Raided = true;
+                main.Raided++;
                 main.Update();
             }
         }
@@ -208,34 +208,33 @@ internal static class Phaser
 
             node = s_queue.Dequeue();
             node._checkTime += CheckPeriod;
-            List<string> violators = [];
-            List<string> violators2 = [];
+            List<Violator> violators = [];
             foreach (string member in node._ids)
             {
                 IEnumerable<Alt> alts = new Member(member).GetAltsByMain();
-                int altCount = alts.Count();
-                int donationTarget = TargetPerPerson * (altCount + 1);
+                int accountCount = alts.Count() + 1;
                 Main main = Db.GetMain(member)!;
-                if (main.Donated >= donationTarget)
+                bool violated = false;
+                Violator violator = new(member);
+
+                if (main.Donated < TargetPerPerson * accountCount) // Donation target
                 {
-                    Console.WriteLine($"[Donate25] {member} new cycle");
+                    violator._donated = main.Donated;
+                    violated = true;
                 }
-                else
+                if (main.Raided < accountCount)
                 {
-                    violators.Add(member);
-                    Console.WriteLine($"[Donate25] {member} violated");
+                    violator._raided = main.Raided;
+                    violated = true;
                 }
-                if (!main.Raided)
+
+                if (violated)
                 {
-                    violators2.Add(member);
-                    Console.WriteLine($"[Phaser] {member} not raided");
+                    violators.Add(violator);
                 }
-                else
-                {
-                    Console.WriteLine($"[Phaser] {member} raided");
-                }
+
                 main.Donated = 0;
-                main.Raided = false;
+                main.Raided = 0;
                 main.Checked = node._checkTime;
                 main.Update();
             }
@@ -249,10 +248,6 @@ internal static class Phaser
             if (violators.Count > 0)
             {
                 await EventViolated!(violators);
-            }
-            if (violators2.Count > 0)
-            {
-                await EventViolated!(violators2);
             }
         }
     }

@@ -23,7 +23,7 @@ internal static class Dc
         s_interactionSvc.AddTypeConverter<Member>(new MemberConverter());
 
         Coc.EventDonated += DonationsChangedAsync;
-        Phaser.EventViolated += Donate25Async;
+        Phaser.EventViolated += PhaseViolatedAsync;
         s_bot.Log += Log;
         s_bot.Ready += Ready;
         s_bot.SlashCommandExecuted += SlashCmdXAsync;
@@ -57,10 +57,25 @@ internal static class Dc
         }
     }
 
-    private static async Task Donate25Async(IEnumerable<string> violators)
+    private static async Task PhaseViolatedAsync(IEnumerable<Violator> violators)
     {
-        IEnumerable<string> names = violators.Select(v => $"{Coc.GetMember(v).Name} ({v})");
-        await s_botLog.SendMessageAsync($"[Donate25] {string.Join(", ", names)}");
+        static string ProcessViolator(Violator v)
+        {
+            string name = Coc.GetMember(v._id).Name;
+            ICollection<string> violations = [];
+            if (v._donated != null)
+            {
+                violations.Add($"Donated {v._donated}");
+            }
+            if (v._raided != null)
+            {
+                violations.Add($"Raided {v._raided}");
+            }
+            return $"{name} ({v._id}) {string.Join(", ", violations)}";
+        }
+
+        IEnumerable<string> violatorMsgs = violators.Select(ProcessViolator);
+        await s_botLog.SendMessageAsync($"[REQ]\n{string.Join("\n", violatorMsgs)}");
     }
 
     private static async Task DonationsChangedAsync(Dictionary<string, DonationTuple> donDelta)
