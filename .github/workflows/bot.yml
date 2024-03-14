@@ -5,10 +5,8 @@ name: C# bot
 
 on:
   push:
-    # branches: [ "main", "debug-workflow" ]
     paths: ["**.cs", ".github/workflows/bot.yml"]
   pull_request:
-    # branches: [ "main" ]
     paths: ["**.cs", ".github/workflows/bot.yml"]
 
 defaults:
@@ -42,7 +40,7 @@ jobs:
       id: setup-dotnet
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.101
+        dotnet-version: 8.0.x
     - name: Restore
       run: dotnet restore
     - name: Inspect
@@ -52,4 +50,3 @@ jobs:
         solutionPath: './Bot.sln'
         noBuild: true
         minimumSeverity: 'warning'
-        dotnetVersion: ${{ steps.setup-dotnet.outputs.dotnet-version }}
