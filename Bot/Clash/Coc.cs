@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using ClashOfClans;
 using ClashOfClans.Core;
 using ClashOfClans.Models;
@@ -10,10 +9,10 @@ namespace Hyperstellar.Clash;
 
 internal static class Coc
 {
-    private class RaidAttackerComparer : IEqualityComparer<ClanCapitalRaidSeasonAttacker>
+    private sealed class RaidAttackerComparer : IEqualityComparer<ClanCapitalRaidSeasonAttacker>
     {
         public bool Equals(ClanCapitalRaidSeasonAttacker? x, ClanCapitalRaidSeasonAttacker? y) => x!.Tag == y!.Tag;
-        public int GetHashCode([DisallowNull] ClanCapitalRaidSeasonAttacker obj) => obj.Tag.GetHashCode();
+        public int GetHashCode(ClanCapitalRaidSeasonAttacker obj) => obj.Tag.GetHashCode();
     }
 
     private const string ClanId = "#2QU2UCJJC"; // 2G8LP8PVV
@@ -47,7 +46,7 @@ internal static class Coc
         foreach (ClanMember m in clan._joiningMembers.Values)
         {
             Main main = new(m.Tag);
-            EventMemberJoined!(m, main);
+            EventMemberJoined(m, main);
             main.Insert();
         }
     }
@@ -80,7 +79,7 @@ internal static class Coc
             }
             // This is before Db.DelMem below so that we can remap Donation to new mainId
             // ^ No longer true because the remap is done ABOVE now but I'll still leave this comment
-            EventMemberLeft!(member, altId);
+            EventMemberLeft(member, altId);
         }
 
         string[] members = [.. clan._leavingMembers.Keys];
@@ -258,7 +257,7 @@ internal static class Coc
 
     internal static async Task InitAsync()
     {
-        static async Task InitClanAsync() { Clan = ClanUtil.FromInit(await GetClanAsync()); }
+        static async Task InitClanAsync() => Clan = ClanUtil.FromInit(await GetClanAsync());
         static async Task InitRaidAsync()
         {
             ClanCapitalRaidSeason season = await GetRaidSeasonAsync();
