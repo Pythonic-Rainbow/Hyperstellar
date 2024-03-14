@@ -42,6 +42,8 @@ public class Member(string cocId)
 
     public Main? TryToMain() => Db.s_db.Table<Main>().FirstOrDefault(m => m.MainId == CocId);
 
+    public Main ToMain() => Db.s_db.Table<Main>().First(m => m.MainId == CocId);
+
     public TableQuery<Alt> GetAltsByMain() => Db.s_db.Table<Alt>().Where(a => a.MainId == CocId);
 
     public string GetName() => Coc.GetMember(CocId).Name;

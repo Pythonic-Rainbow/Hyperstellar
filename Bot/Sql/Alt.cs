@@ -14,6 +14,8 @@ public sealed class Alt(string altId, string mainId)
 
     public TableQuery<Alt> GetOtherAlts() => Db.s_db.Table<Alt>().Where(a => a.MainId == MainId && a.AltId != AltId);
 
+    public Main GetMain() => Db.s_db.Table<Main>().Where(m => m.MainId == MainId).First();
+
     public bool UpdateMain(string id)
     {
         MainId = id;

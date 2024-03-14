@@ -90,4 +90,43 @@ public class Cmds : InteractionModuleBase
         main.Update();
         await RespondAsync("Linked");
     }
+
+    [SlashCommand("info", "Shows info of a Coc member")]
+    public async Task InfoAsync(Member member)
+    {
+        ClanMember cocMem = Coc.GetMember(member.CocId);
+
+        EmbedBuilder embed = new()
+        {
+            Title = cocMem.Name,
+            Author = new EmbedAuthorBuilder { Name = cocMem.Tag }
+        };
+
+        Alt? alt = member.TryToAlt();
+        if (alt == null)
+        {
+            embed.Description = string.Join(", ", member.GetAltsByMain().Select(a => Coc.GetMember(a.AltId).Name));
+            Main main = member.ToMain();
+            if (main.Discord != null)
+            {
+                embed.AddField("Discord", $"<@{main.Discord}>");
+            }
+        }
+        else
+        {
+            embed.Description = $"__{Coc.GetMember(alt.MainId).Name}__";
+            IEnumerable<string> altNames = alt.GetOtherAlts().Select(a => Coc.GetMember(a.AltId).Name);
+            foreach (string altName in altNames)
+            {
+                embed.Description += $", {altName}";
+            }
+            Main main = alt.GetMain();
+            if (main.Discord != null)
+            {
+                embed.AddField("Discord", $"<@{main.Discord}>");
+            }
+        }
+
+        await RespondAsync(embed: embed.Build());
+    }
 }
