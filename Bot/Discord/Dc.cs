@@ -81,23 +81,19 @@ internal static class Dc
     private static async Task DonationsChangedAsync(IEnumerable<Tuple<string, int>> donDelta, IEnumerable<Tuple<string, int>> recDelta)
     {
         string msg = "[DNT] ";
-        string[] donItems = new string[donDelta.Count()];
-        for (int i = 0; i < donDelta.Count(); i++)
+        msg += string.Join(", ", donDelta.Select(t =>
         {
-            (string tag, int donated) = donDelta.ElementAt(i);
+            (string tag, int donated) = t;
             string name = Coc.GetMember(tag).Name;
-            donItems[i] = $"{name}: {donated}";
-        }
-        msg += string.Join(", ", donItems);
+            return $"{name}: {donated}";
+        }));
         msg += "\n=> ";
-        string[] recItems = new string[recDelta.Count()];
-        for (int i = 0; i < recDelta.Count(); i++)
+        msg += string.Join(", ", recDelta.Select(t =>
         {
-            (string tag, int received) = recDelta.ElementAt(i);
+            (string tag, int received) = t;
             string name = Coc.GetMember(tag).Name;
-            recItems[i] = $"{name}: {received}";
-        }
-        msg += string.Join(", ", recItems);
+            return $"{name}: {received}";
+        }));
         await s_botLog.SendMessageAsync(msg);
     }
 
