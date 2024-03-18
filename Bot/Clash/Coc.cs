@@ -4,6 +4,8 @@ using ClashOfClans.Models;
 using ClashOfClans.Search;
 using Hyperstellar.Discord;
 using Hyperstellar.Sql;
+using QuikGraph;
+using QuikGraph.Algorithms.MaximumFlow;
 
 namespace Hyperstellar.Clash;
 
@@ -24,8 +26,8 @@ internal static class Coc
     internal static event Action<ClanMember, string?> EventMemberLeft;
     internal static event Action<ClanCapitalRaidSeason> EventInitRaid;
     internal static event Action<ClanCapitalRaidSeason> EventRaidCompleted;
-    internal static event Func<Dictionary<string, DonationTuple>, Task> EventDonated;
-    internal static event Func<Dictionary<string, DonationTuple>, Task> EventDonatedFold;
+    internal static event Action<IEnumerable<Tuple<string, int>>> EventDonatedMaxFlow;
+    internal static event Func<IEnumerable<Tuple<string, int>>, IEnumerable<Tuple<string, int>>, Task> EventDonated;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     static Coc() => Dc.EventBotReady += BotReadyAsync;
@@ -169,56 +171,90 @@ internal static class Coc
 
     private static async Task CheckDonationsAsync(ClanUtil clan)
     {
-        Dictionary<string, DonationTuple> donDelta = [];
+        List<Tuple<string, int>> donDelta = [], recDelta = [];
+        Dictionary<string, string> accToMainAcc = [];
+        AdjacencyGraph<string, TaggedEdge<string, int>> graph = new(false);
+        graph.AddVertexRange(["s", "t"]);
+
         foreach (string tag in clan._existingMembers.Keys)
         {
             ClanMember current = clan._members[tag];
             ClanMember previous = Clan._members[tag];
-            if (current.Donations > previous.Donations || current.DonationsReceived > previous.DonationsReceived)
+
+            if (current.Donations > previous.Donations)
             {
-                donDelta[current.Tag] = new(current.Donations - previous.Donations, current.DonationsReceived - previous.DonationsReceived);
+                int donated = current.Donations - previous.Donations;
+
+                donDelta.Add(new(current.Tag, donated));
+
+                graph.AddVertex(current.Tag);
+                graph.AddEdge(new("s", current.Tag, donated));
+
+                accToMainAcc.TryAdd(current.Tag, new Member(current.Tag).GetEffectiveMain().MainId);
             }
         }
 
-        foreach (KeyValuePair<string, DonationTuple> dd in donDelta)
+        foreach (string tag in clan._existingMembers.Keys)
         {
-            Console.WriteLine($"{dd.Key}: {dd.Value._donated} {dd.Value._received}");
-        }
+            ClanMember current = clan._members[tag];
+            ClanMember previous = Clan._members[tag];
 
-        // Fold alt data into main
-        Dictionary<string, DonationTuple> foldedDelta = [];
-        foreach (KeyValuePair<string, DonationTuple> delta in donDelta)
-        {
-            string tag = delta.Key;
-            DonationTuple dt = delta.Value;
-            Alt? alt = new Member(tag).TryToAlt();
-            if (alt != null)
+            if (current.DonationsReceived > previous.DonationsReceived)
             {
-                tag = alt.MainId;
+                string vertexName = $"#{current.Tag}"; // Double # for received node
+                int received = current.DonationsReceived - previous.DonationsReceived;
+                recDelta.Add(new(current.Tag, received));
+                graph.AddVertex(vertexName);
+                graph.AddEdge(new(vertexName, "t", received));
+
+                foreach (string donor in accToMainAcc
+                    .Where(kv => kv.Value != new Member(current.Tag).GetEffectiveMain().MainId)
+                    .Select(kv => kv.Key))
+                {
+                    graph.AddEdge(new(donor, vertexName, received));
+                }
             }
-            foldedDelta[tag] = foldedDelta.TryGetValue(tag, out DonationTuple value) ? value.Add(dt) : dt;
         }
 
-        if (foldedDelta.Count > 0)
+        if (graph.VertexCount > 2)
         {
-            Console.WriteLine("---");
-        }
+            ReversedEdgeAugmentorAlgorithm<string, TaggedEdge<string, int>> reverseAlgo = new(
+                graph,
+                (s, t) =>
+                {
+                    TaggedEdge<string, int> e = graph.Edges.First(e => e.Source == t && e.Target == s);
+                    return new TaggedEdge<string, int>(s, t, e.Tag);
+                });
+            reverseAlgo.AddReversedEdges();
 
-        foreach (KeyValuePair<string, DonationTuple> dd in foldedDelta)
-        {
-            Console.WriteLine($"{dd.Key}: {dd.Value._donated} {dd.Value._received}");
-        }
+            EdmondsKarpMaximumFlowAlgorithm<string, TaggedEdge<string, int>> maxFlowAlgo = new(
+                graph,
+                e => e.Tag, // capacities
+                (_, _) => graph.Edges.First(), // EdgeFactory (isn't actually used by the algo)
+                reverseAlgo)
+            {
+                Source = "s",
+                Sink = "t"
+            };
+            maxFlowAlgo.Compute();
 
-        ICollection<Task> tasks = [];
-        if (donDelta.Count > 0)
-        {
-            tasks.Add(EventDonated(donDelta));
+            List<Tuple<string, int>> maxFlowDonations = [];
+            foreach ((TaggedEdge<string, int> edge, double capa) in
+                maxFlowAlgo.ResidualCapacities.Where(ed => ed.Key.Source == "s"))
+            {
+                int donated = (int)(edge.Tag - capa);
+                if (donated > 0)
+                {
+                    maxFlowDonations.Add(new(edge.Target, donated));
+                }
+            }
+
+            if (maxFlowDonations.Count > 0)
+            {
+                EventDonatedMaxFlow(maxFlowDonations);
+            }
+            await EventDonated(donDelta, recDelta);
         }
-        if (foldedDelta.Count > 0)
-        {
-            tasks.Add(EventDonatedFold(foldedDelta));
-        }
-        await Task.WhenAll(tasks);
     }
 
     internal static string? GetMemberId(string name)

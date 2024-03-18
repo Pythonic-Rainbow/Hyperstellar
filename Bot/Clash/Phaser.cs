@@ -21,7 +21,7 @@ internal static class Phaser
     {
         Coc.EventMemberJoined += MemberAdded;
         Coc.EventMemberLeft += MemberLeft;
-        Coc.EventDonatedFold += DonationChanged;
+        Coc.EventDonatedMaxFlow += DonationChanged;
         Coc.EventInitRaid += InitRaid;
         Coc.EventRaidCompleted += ProcessRaid;
         Dc.EventBotReady += BotReadyAsync;
@@ -96,23 +96,15 @@ internal static class Phaser
         Console.WriteLine("[Donate25] Inited");
     }
 
-    private static Task DonationChanged(Dictionary<string, DonationTuple> foldedDelta)
+    private static void DonationChanged(IEnumerable<Tuple<string, int>> donations)
     {
-        foreach ((string tag, DonationTuple dt) in foldedDelta)
+        foreach ((string tag, int donated) in donations)
         {
-            int donated = dt._donated;
-            int received = dt._received;
-
-            if (donated > received)
-            {
-                donated -= received;
-                Main main = Db.GetMain(tag)!;
-                main.Donated += (uint)donated;
-                Console.WriteLine($"[Donate25] {tag} {donated}");
-                Db.UpdateMain(main);
-            }
+            Main main = new Member(tag).GetEffectiveMain();
+            main.Donated += (uint)donated;
+            Console.WriteLine($"[Donate25] {tag} {donated}");
+            Db.UpdateMain(main);
         }
-        return Task.CompletedTask;
     }
 
     private static void AltAdded(Main altMain, Main mainMain)

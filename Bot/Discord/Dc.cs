@@ -78,22 +78,24 @@ internal static class Dc
         await s_botLog.SendMessageAsync($"[REQ]\n{string.Join("\n", violatorMsgs)}");
     }
 
-    private static async Task DonationsChangedAsync(Dictionary<string, DonationTuple> donDelta)
+    private static async Task DonationsChangedAsync(IEnumerable<Tuple<string, int>> donDelta, IEnumerable<Tuple<string, int>> recDelta)
     {
         string msg = "[DNT] ";
-        List<string> items = new(donDelta.Count / 2);
-        foreach ((string tag, DonationTuple dt) in donDelta.Where(d => d.Value._donated > 0))
+        string[] items = new string[donDelta.Count()];
+        for (int i = 0; i < donDelta.Count(); i++)
         {
+            (string tag, int donated) = donDelta.ElementAt(i);
             string name = Coc.GetMember(tag).Name;
-            items.Add($"{name}: {dt._donated}");
+            items[i] = $"{name}: {donated}";
         }
         msg += string.Join(", ", items);
         msg += "\n=> ";
-        items.Clear();
-        foreach ((string tag, DonationTuple dt) in donDelta.Where(d => d.Value._received > 0))
+        items = new string[recDelta.Count()];
+        for (int i = 0; i < recDelta.Count(); i++)
         {
+            (string tag, int received) = recDelta.ElementAt(i);
             string name = Coc.GetMember(tag).Name;
-            items.Add($"{name}: {dt._received}");
+            items[i] = $"{name}: {received}";
         }
         msg += string.Join(", ", items);
         await s_botLog.SendMessageAsync(msg);
