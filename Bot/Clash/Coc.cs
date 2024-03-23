@@ -62,10 +62,9 @@ internal static class Coc
 
         foreach ((string id, ClanMember member) in clan._leavingMembers)
         {
-            IEnumerable<Alt> alts = new Member(id).GetAltsByMain();
+            Member fakeMem = new(id);
+            IEnumerable<Alt> alts = fakeMem.GetAltsByMain();
             string? altId = null;
-            Main main = Db.GetMain(id)!;
-            main.Delete();
             if (alts.Any())
             {
                 Alt alt = alts.First();
@@ -76,6 +75,8 @@ internal static class Coc
                 }
                 alt.Delete();
                 // Maybe adapt this in the future if need to modify attributes when replacing main
+                Main main = fakeMem.ToMain();
+                main.Delete();
                 main.MainId = altId;
                 main.Insert();
             }
