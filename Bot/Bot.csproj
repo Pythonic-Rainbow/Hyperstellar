@@ -27,23 +27,14 @@
 
   <ItemGroup>
     <PackageReference Include="ClashOfClans" Version="9.0.0" />
-    <PackageReference Include="Discord.Net.Interactions" Version="3.13.1" />
-    <PackageReference Include="Discord.Net.WebSocket" Version="3.13.1" />
+    <PackageReference Include="Discord.Net.Interactions" Version="3.15.3" />
+    <PackageReference Include="Discord.Net.WebSocket" Version="3.15.3" />
     <PackageReference Include="QuikGraph" Version="2.5.0" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.8" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="SQLite-net">
-      <HintPath>SQLite-net.dll</HintPath>
-    </Reference>
+    <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="secrets.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="SQLite-net.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
