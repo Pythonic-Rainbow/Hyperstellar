@@ -5,9 +5,9 @@ name: C# bot
 
 on:
   push:
-    paths: ["**.cs", ".github/workflows/bot.yml"]
+    paths: ["**.cs", "**.csproj", ".github/workflows/bot.yml"]
   pull_request:
-    paths: ["**.cs", ".github/workflows/bot.yml"]
+    paths: ["**.cs", "**.csproj", ".github/workflows/bot.yml"]
 
 defaults:
  run:
