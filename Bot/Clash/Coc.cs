@@ -264,6 +264,12 @@ internal static class Coc
         return result?.Tag;
     }
 
+    internal static ClanMember? TryGetMember(string id)
+    {
+        Clan._members.TryGetValue(id, out ClanMember? result);
+        return result;
+    }
+
     internal static ClanMember GetMember(string id) => Clan._members[id];
 
     internal static HashSet<ClanCapitalRaidSeasonAttacker> GetRaidAttackers(ClanCapitalRaidSeason season)

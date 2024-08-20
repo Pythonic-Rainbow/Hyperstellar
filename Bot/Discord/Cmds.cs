@@ -91,10 +91,10 @@ public class Cmds : InteractionModuleBase
         await RespondAsync("Linked");
     }
 
-    [SlashCommand("info", "Shows info of a Coc member")]
-    public async Task InfoAsync(Member member)
+    [SlashCommand("info", "Shows info of a clan member")]
+    public async Task InfoAsync(Member clanMember)
     {
-        ClanMember cocMem = Coc.GetMember(member.CocId);
+        ClanMember cocMem = Coc.GetMember(clanMember.CocId);
 
         EmbedBuilder embed = new()
         {
@@ -102,11 +102,11 @@ public class Cmds : InteractionModuleBase
             Author = new EmbedAuthorBuilder { Name = cocMem.Tag }
         };
 
-        Alt? alt = member.TryToAlt();
+        Alt? alt = clanMember.TryToAlt();
         if (alt == null)
         {
-            embed.Description = string.Join(", ", member.GetAltsByMain().Select(a => Coc.GetMember(a.AltId).Name));
-            Main main = member.ToMain();
+            embed.Description = string.Join(", ", clanMember.GetAltsByMain().Select(a => Coc.GetMember(a.AltId).Name));
+            Main main = clanMember.ToMain();
             if (main.Discord != null)
             {
                 embed.AddField("Discord", $"<@{main.Discord}>");
@@ -128,5 +128,33 @@ public class Cmds : InteractionModuleBase
         }
 
         await RespondAsync(embed: embed.Build());
+    }
+
+    [RequireAdmin]
+    [SlashCommand("alias", "Sets an alias for a Coc member")]
+    public async Task AliasAsync(string alias, Member member)
+    {
+        bool success = Db.AddAlias(alias, member);
+        if (success)
+        {
+            await RespondAsync($"`{alias}` is now an alias of `{member.GetName()}`");
+        }
+        else
+        {
+            await RespondAsync("Failed to add alias.");
+        }
+    }
+
+    [SlashCommand("aliases", "Lists all aliases")]
+    public async Task AliasesAsync()
+    {
+        string msg = "";
+        foreach (CocMemberAlias alias in Db.GetAliases())
+        {
+            ClanMember? clanMember = Coc.TryGetMember(alias.CocId);
+            string name = clanMember == null ? "" : clanMember.Name;
+            msg += $"{alias.Alias} -> {name} {alias.CocId}\n";
+        }
+        await RespondAsync(msg);
     }
 }

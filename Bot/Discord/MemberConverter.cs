@@ -12,6 +12,7 @@ internal sealed class MemberConverter : TypeConverter
     public override Task<TypeConverterResult> ReadAsync(IInteractionContext context, IApplicationCommandInteractionDataOption option, IServiceProvider services)
     {
         string input = (string)option.Value;
+        // Console.WriteLine($"\"{input}\"");
         Member? member = Db.GetMember(input);
         if (member == null)
         {
@@ -22,8 +23,11 @@ internal sealed class MemberConverter : TypeConverter
             }
         }
         return member == null
-            ? Task.FromResult(TypeConverterResult.FromError(InteractionCommandError.ConvertFailed,
-                                                                 $"Invalid `{option.Name}`: To specify a clan member, enter his name/ID with #"))
+            ? Task.FromResult(TypeConverterResult.FromError(
+                InteractionCommandError.ConvertFailed,
+                @$"Invalid `{option.Name}`. To specify a clan member:
+* Enter his name (非速本主義Arkyo), alias (Arkyo) or ID with # (#28QL0CJV2)
+* Mention his Discord (@Dim) __which will refer to his main__"))
             : Task.FromResult(TypeConverterResult.FromSuccess(member));
     }
 }

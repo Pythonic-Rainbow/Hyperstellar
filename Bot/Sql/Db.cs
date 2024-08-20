@@ -41,6 +41,15 @@ internal static class Db
         return count == 1;
     }
 
+    internal static IEnumerable<CocMemberAlias> GetAliases() => s_db.Table<CocMemberAlias>();
+
+    internal static bool AddAlias(string alias, Member member)
+    {
+        CocMemberAlias cocMemberAlias = new(alias, member.CocId);
+        int count = s_db.Insert(cocMemberAlias);
+        return count == 1;
+    }
+
     internal static async Task InitAsync()
     {
         s_db.BeginTransaction();
