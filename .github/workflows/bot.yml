@@ -23,15 +23,15 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Build
-      run: dotnet publish -c Release -r linux-arm64 --no-self-contained
+      run: dotnet publish -c Release -r linux-x64 --no-self-contained
     - name: Upload program
       uses: actions/upload-artifact@v3
       with:
         name: Bot
         path: |
-          Bot/bin/Release/net8.0/linux-arm64
-          !Bot/bin/Release/net8.0/linux-arm64/*.pdb
-          !Bot/bin/Release/net8.0/linux-arm64/publish
+          Bot/bin/Release/net8.0/linux-x64
+          !Bot/bin/Release/net8.0/linux-x64/*.pdb
+          !Bot/bin/Release/net8.0/linux-x64/publish
   inspect:
     runs-on: ubuntu-latest
     steps:
