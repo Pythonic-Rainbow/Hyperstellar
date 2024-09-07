@@ -36,9 +36,12 @@ internal static class Dc
         return Task.CompletedTask;
     }
 
+    private static uint readyCount;
     private static async Task Ready()
     {
+        readyCount++;
         s_botLog = (SocketTextChannel)s_bot.GetChannel(Secrets.s_botLogId);
+        await s_botLog.SendMessageAsync($"Ready {readyCount}");
         _ = Task.Run(EventBotReady);
         await s_interactionSvc.RegisterCommandsGloballyAsync();
     }
@@ -123,7 +126,21 @@ internal static class Dc
                 Name = exName
             };
         }
-        await s_botLog.SendMessageAsync(s_botApp.Owner.Mention, embed: emb.Build());
+
+        // Always waits until the exception is actually sent
+        while (true)
+        {
+            try
+            {
+                await s_botLog.SendMessageAsync(s_botApp.Owner.Mention, embed: emb.Build());
+                return;
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
     }
 
     internal static async Task SendLogAsync(string msg) => await s_botLog.SendMessageAsync(msg);
