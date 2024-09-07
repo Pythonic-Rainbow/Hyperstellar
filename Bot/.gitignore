@@ -8,6 +8,8 @@ Hyperstellar.db
 Hyperstellar
 hyperstellar-token.txt
 
+.idea
+
 # User-specific files
 *.rsuser
 *.suo

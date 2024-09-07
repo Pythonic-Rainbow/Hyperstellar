@@ -27,6 +27,8 @@ internal static class Db
 
     internal static Main? GetMain(string id) => s_db.Table<Main>().FirstOrDefault(d => d.MainId == id);
 
+    internal static Main? GetMainByDiscord(ulong uid) => s_db.Table<Main>().FirstOrDefault(m => m.Discord == uid);
+
     internal static IEnumerable<Main> GetDonations() => s_db.Table<Main>();
 
     internal static bool UpdateMain(Main main) => s_db.Update(main) == 1;
@@ -41,11 +43,17 @@ internal static class Db
         return count == 1;
     }
 
+    internal static CocMemberAlias? TryGetAlias(string alias)
+    {
+        alias = alias.ToLower();
+        return s_db.Table<CocMemberAlias>().FirstOrDefault(a => a.Alias == alias);
+    }
+
     internal static IEnumerable<CocMemberAlias> GetAliases() => s_db.Table<CocMemberAlias>();
 
     internal static bool AddAlias(string alias, Member member)
     {
-        CocMemberAlias cocMemberAlias = new(alias, member.CocId);
+        CocMemberAlias cocMemberAlias = new(alias.ToLower(), member.CocId);
         int count = s_db.Insert(cocMemberAlias);
         return count == 1;
     }

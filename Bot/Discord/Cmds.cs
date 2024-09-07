@@ -11,7 +11,7 @@ namespace Hyperstellar.Discord;
 public class Cmds : InteractionModuleBase
 {
     [RequireOwner]
-    [SlashCommand("shutdown", "Shuts down the bot")]
+    [SlashCommand("shutdown", "[Owner] Shuts down the bot")]
     public async Task ShutdownAsync(bool commit = true)
     {
         await RespondAsync("Ok", ephemeral: true);
@@ -23,7 +23,7 @@ public class Cmds : InteractionModuleBase
     }
 
     [RequireOwner]
-    [SlashCommand("commit", "Commits db")]
+    [SlashCommand("commit", "[Owner] Commits db")]
     public async Task CommitAsync()
     {
         Db.Commit();
@@ -31,7 +31,7 @@ public class Cmds : InteractionModuleBase
     }
 
     [RequireOwner]
-    [SlashCommand("admin", "Makes the Discord user an admin")] // Maybe rename to addadmin
+    [SlashCommand("admin", "[Owner] Makes the Discord user an admin")] // Maybe rename to addadmin
     public async Task AdminAsync(SocketGuildUser user)
     {
         bool success = Db.AddAdmin(user.Id);
@@ -46,7 +46,7 @@ public class Cmds : InteractionModuleBase
     }
 
     [RequireAdmin]
-    [SlashCommand("alt", "Links an alt to a main")]
+    [SlashCommand("alt", "[Admin] Links an alt to a main")]
     public async Task AltAsync(Member alt, Member main)
     {
         if (alt.CocId == main.CocId)
@@ -72,8 +72,8 @@ public class Cmds : InteractionModuleBase
     }
 
     [RequireAdmin]
-    [SlashCommand("link", "[Admin] Links a Discord account to a Main")]
-    public async Task LinkAsync(Member coc, IGuildUser discord)
+    [SlashCommand("discord", "[Admin] Links a Discord account to a Main")]
+    public async Task DiscordAsync(Member coc, IGuildUser discord)
     {
         Main? main = coc.TryToMain();
         if (main == null)
@@ -131,7 +131,7 @@ public class Cmds : InteractionModuleBase
     }
 
     [RequireAdmin]
-    [SlashCommand("alias", "Sets an alias for a Coc member")]
+    [SlashCommand("alias", "[Admin] Sets an alias for a Coc member")]
     public async Task AliasAsync(string alias, Member member)
     {
         bool success = Db.AddAlias(alias, member);

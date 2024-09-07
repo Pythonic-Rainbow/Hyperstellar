@@ -2,6 +2,7 @@
 1. [Prerequisites](#prerequisites)
 2. [Structure Overview](#overview)
 3. [Coding Guidelines](#guidelines)
+4. [Dev Notes](#devnotes)
 
 <a name="prerequisites"></a>
 # Prerequisites
@@ -94,3 +95,7 @@ private async Task ReportToCIA() { }
 public uint ComputeFactorial(uint number) { }
 public async Task ProcessPayment() { }
 ```
+
+<a name="devnotes"></a>
+# Dev Notes
+1. Use `Coc.GetMember` or `Coc.TryGetMember` if you want to check whether a player tag is currently in the clan.
