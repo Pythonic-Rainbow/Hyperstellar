@@ -174,14 +174,8 @@ internal static class Phaser
 
     private static async Task BotReadyAsync()
     {
-        try
-        {
-            await CheckQueueAsync();
-        }
-        catch (Exception ex)
-        {
-            await Dc.ExceptionAsync(ex);
-        }
+        ReadyHandler handler = new(0, 1000, CheckQueueAsync);
+        await handler.RunAsync();
     }
 
     private static async Task CheckQueueAsync()
@@ -196,7 +190,10 @@ internal static class Phaser
             }
 
             int waitDelay = (int)((node._checkTime * 1000) - DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-            await Task.Delay(waitDelay);
+            if (waitDelay > 0)
+            {
+                await Task.Delay(waitDelay);
+            }
 
             node = s_queue.Dequeue();
             node._checkTime += CheckPeriod;
@@ -242,6 +239,8 @@ internal static class Phaser
                 await EventViolated!(violators);
             }
         }
+
+        throw new InvalidOperationException("Phaser queue is empty WTF");
     }
 
     internal static bool IsDatetimeExpired(DateTimeOffset time) => (DateTimeOffset.UtcNow - time).TotalSeconds >= CheckPeriod;

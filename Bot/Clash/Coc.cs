@@ -1,5 +1,4 @@
 using ClashOfClans;
-using ClashOfClans.Core;
 using ClashOfClans.Models;
 using ClashOfClans.Search;
 using Hyperstellar.Discord;
@@ -19,7 +18,6 @@ internal static class Coc
 
     private const string ClanId = "#2QU2UCJJC"; // 2G8LP8PVV
     private static readonly ClashOfClansClient s_client = new(Secrets.s_coc);
-    private static ClashOfClansException? s_exception;
     private static ClanCapitalRaidSeason s_raidSeason;
     internal static ClanUtil Clan { get; private set; } = new();
     internal static event Action<ClanMember, Main> EventMemberJoined;
@@ -93,29 +91,8 @@ internal static class Coc
 
     private static async Task BotReadyAsync()
     {
-        while (true)
-        {
-            try
-            {
-                await PollAsync();
-                s_exception = null;
-                await Task.Delay(10000);
-            }
-            catch (ClashOfClansException ex)
-            {
-                if (s_exception == null || s_exception.Error.Reason != ex.Error.Reason || s_exception.Error.Message != ex.Error.Message)
-                {
-                    s_exception = ex;
-                    await Dc.ExceptionAsync(ex);
-                }
-                await Task.Delay(60000);
-            }
-            catch (Exception ex)
-            {
-                await Dc.ExceptionAsync(ex);
-                await Task.Delay(60000);
-            }
-        }
+        ReadyHandler handler = new(10000, 60000, PollAsync);
+        await handler.RunAsync();
     }
 
     private static async Task<Clan> GetClanAsync() => await s_client.Clans.GetClanAsync(ClanId);

@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Discord;
 using Discord.Interactions;
+using Discord.Rest;
 using Discord.WebSocket;
 using Hyperstellar.Clash;
 using Hyperstellar.Sql;
@@ -36,14 +37,12 @@ internal static class Dc
         return Task.CompletedTask;
     }
 
-    private static uint readyCount;
     private static async Task Ready()
     {
-        readyCount++;
         s_botLog = (SocketTextChannel)s_bot.GetChannel(Secrets.s_botLogId);
-        await s_botLog.SendMessageAsync($"Ready {readyCount}");
         _ = Task.Run(EventBotReady);
         await s_interactionSvc.RegisterCommandsGloballyAsync();
+        s_bot.Ready -= Ready;
     }
 
     private static async Task SlashCmdXAsync(SocketSlashCommand cmd)
@@ -108,7 +107,7 @@ internal static class Dc
         await s_bot.StartAsync();
     }
 
-    internal static async Task ExceptionAsync(Exception ex)
+    internal static async Task<RestUserMessage> NewExceptionLogAsync(Exception ex)
     {
         EmbedBuilder emb = new()
         {
@@ -116,7 +115,7 @@ internal static class Dc
         };
         if (ex.StackTrace != null)
         {
-            emb.Description = ex.StackTrace;
+            emb.Description = Program.GetExceptionStackTraceString(ex);
         }
         string? exName = ex.GetType().FullName;
         if (exName != null)
@@ -128,19 +127,9 @@ internal static class Dc
         }
 
         // Always waits until the exception is actually sent
-        while (true)
-        {
-            try
-            {
-                await s_botLog.SendMessageAsync(s_botApp.Owner.Mention, embed: emb.Build());
-                return;
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        }
-
+        return await Program.TryForeverAsync<RestUserMessage>(
+            async () => await s_botLog.SendMessageAsync(s_botApp.Owner.Mention, embed: emb.Build())
+            );
     }
 
     internal static async Task SendLogAsync(string msg) => await s_botLog.SendMessageAsync(msg);
