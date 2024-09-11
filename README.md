@@ -1,3 +1,6 @@
+For bot usage please see [here](docs/bot_usage_EN.md)
+---
+
 ## [👉Please join our Discord 请加入我们的Discord](https://discord.gg/N5P2uJD)
 
 ## 👇Clan War Standard 部落战标准规定
