@@ -4,14 +4,9 @@ namespace Hyperstellar.Sql;
 
 internal static class Db
 {
-    internal static readonly SQLiteConnection s_db = new("Hyperstellar.db");
-    internal static readonly HashSet<ulong> s_admins = s_db.Table<BotAdmin>().Select(a => a.Id).ToHashSet();
+    internal static readonly SQLiteConnection s_db = DbObj.s_db;
 
-    internal static void Commit()
-    {
-        s_db.Commit();
-        s_db.BeginTransaction();
-    }
+    internal static void Commit() => DbObj.Commit();
 
     internal static IEnumerable<Member> GetMembers() => s_db.Table<Member>();
 
@@ -34,14 +29,6 @@ internal static class Db
     internal static bool UpdateMain(Main main) => s_db.Update(main) == 1;
 
     internal static Alt? TryGetAlt(string altId) => s_db.Table<Alt>().FirstOrDefault(a => a.AltId == altId);
-
-    internal static bool AddAdmin(ulong id)
-    {
-        BotAdmin admin = new(id);
-        int count = s_db.Insert(admin);
-        s_admins.Add(id);
-        return count == 1;
-    }
 
     internal static CocMemberAlias? TryGetAlias(string alias)
     {

@@ -34,7 +34,7 @@ public class Cmds : InteractionModuleBase
     [SlashCommand("admin", "[Owner] Makes the Discord user an admin")] // Maybe rename to addadmin
     public async Task AdminAsync(SocketGuildUser user)
     {
-        bool success = Db.AddAdmin(user.Id);
+        bool success = new BotAdmin(user.Id).Insert() == 1;
         if (success)
         {
             await RespondAsync("Success!", ephemeral: true);

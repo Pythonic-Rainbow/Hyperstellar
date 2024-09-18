@@ -292,7 +292,7 @@ internal static class Coc
                 }
                 catch (ClashOfClansException ex)
                 {
-                    if (ex.Error.Reason == "accessDenied")
+                    if (ex.Error.Reason.StartsWith("accessDenied"))
                     {
                         counter++;
                         continue;
