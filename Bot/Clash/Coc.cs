@@ -1,4 +1,5 @@
 using ClashOfClans;
+using ClashOfClans.Core;
 using ClashOfClans.Models;
 using ClashOfClans.Search;
 using Hyperstellar.Discord;
@@ -17,7 +18,7 @@ internal static class Coc
     }
 
     private const string ClanId = "#2QU2UCJJC"; // 2G8LP8PVV
-    private static readonly ClashOfClansClient s_client = new(Secrets.s_coc);
+    private static ClashOfClansClient s_client;
     private static ClanCapitalRaidSeason s_raidSeason;
     internal static ClanUtil Clan { get; private set; } = new();
     internal static event Action<ClanMember, Main> EventMemberJoined;
@@ -277,7 +278,30 @@ internal static class Coc
 
     internal static async Task InitAsync()
     {
-        static async Task InitClanAsync() => Clan = ClanUtil.FromInit(await GetClanAsync());
+        static async Task InitClanAsync()
+        {
+            int counter = 1;
+            foreach (string token in Secrets.s_coc)
+            {
+                s_client = new(token);
+                try
+                {
+                    Clan = ClanUtil.FromInit(await GetClanAsync());
+                    Console.WriteLine($"Logged into CoC with token {counter}");
+                    return;
+                }
+                catch (ClashOfClansException ex)
+                {
+                    if (ex.Error.Reason == "accessDenied")
+                    {
+                        counter++;
+                        continue;
+                    }
+                }
+            }
+            throw new InvalidDataException("All CoC tokens are invalid!");
+        }
+
         static async Task InitRaidAsync()
         {
             ClanCapitalRaidSeason season = await GetRaidSeasonAsync();
