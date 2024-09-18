@@ -26,6 +26,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
     <PackageReference Include="ClashOfClans" Version="9.0.0" />
     <PackageReference Include="Discord.Net.Interactions" Version="3.16.0" />
     <PackageReference Include="Discord.Net.WebSocket" Version="3.16.0" />

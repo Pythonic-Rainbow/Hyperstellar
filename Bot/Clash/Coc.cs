@@ -40,7 +40,8 @@ internal static class Coc
         }
 
         string[] members = [.. clan._joiningMembers.Keys];
-        Db.AddMembers(members);
+        Member[] memberObjects = [.. members.Select(memberId => new Member(memberId))];
+        DbObj.InsertAll(memberObjects);
         string membersMsg = string.Join(", ", members);
         Console.WriteLine($"{membersMsg} joined");
 
@@ -85,7 +86,10 @@ internal static class Coc
         }
 
         string[] members = [.. clan._leavingMembers.Keys];
-        Db.DeleteMembers(members);
+        foreach (string member in members)
+        {
+            new Member(member).Delete();
+        }
         string membersMsg = string.Join(", ", members);
         Console.WriteLine($"{membersMsg} left");
     }
@@ -297,6 +301,7 @@ internal static class Coc
                         counter++;
                         continue;
                     }
+                    throw;
                 }
             }
             throw new InvalidDataException("All CoC tokens are invalid!");
@@ -311,6 +316,6 @@ internal static class Coc
             _ = Task.Run(PollRaidAsync);
         }
 
-        await Task.WhenAll([InitClanAsync(), InitRaidAsync()]);
+        await Task.WhenAll(InitClanAsync(), InitRaidAsync());
     }
 }

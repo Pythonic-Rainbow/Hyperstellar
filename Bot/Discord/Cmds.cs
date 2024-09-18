@@ -14,11 +14,11 @@ public class Cmds : InteractionModuleBase
     [SlashCommand("shutdown", "[Owner] Shuts down the bot")]
     public async Task ShutdownAsync(bool commit = true)
     {
-        await RespondAsync("Ok", ephemeral: true);
         if (commit)
         {
-            Db.Commit();
+            DbObj.Commit();
         }
+        await RespondAsync("Ok", ephemeral: true);
         Environment.Exit(0);
     }
 
@@ -26,7 +26,7 @@ public class Cmds : InteractionModuleBase
     [SlashCommand("commit", "[Owner] Commits db")]
     public async Task CommitAsync()
     {
-        Db.Commit();
+        DbObj.Commit();
         await RespondAsync("Committed", ephemeral: true);
     }
 

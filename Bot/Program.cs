@@ -5,42 +5,40 @@ namespace Hyperstellar;
 
 public static class Program
 {
-    private static void DefaultTryForeverExceptionFunc(Exception ex) => Console.Error.WriteLine(GetExceptionStackTraceString(ex));
+    private static void DefaultTryForeverExceptionFunc(Exception ex) =>
+        Console.Error.WriteLine(GetExceptionStackTraceString(ex));
 
     internal static string GetExceptionStackTraceString(Exception ex)
     {
         string msg = "";
-        StackTrace stackTrace = new(ex, true);
 
+        EnhancedStackTrace stackTrace = new(ex);
         for (int i = 0; i < stackTrace.FrameCount; i++)
         {
-            string frameMsg = "<Unknown frame>";
-            StackFrame? frame = stackTrace.GetFrame(i);
-            if (frame != null)
+            StackFrame frame = stackTrace.GetFrame(i);
+
+
+            string methodMsg = "???::??";
+            MethodBase? method = frame.GetMethod();
+            if (method != null)
             {
-
-                string methodMsg = "???::??";
-                MethodBase? method = frame.GetMethod();
-                if (method != null)
+                string typeMsg = "<Unknown type>";
+                Type? type = method.DeclaringType;
+                if (type != null)
                 {
-
-                    string typeMsg = "<Unknown type>";
-                    Type? type = method.DeclaringType;
-                    if (type != null)
-                    {
-                        typeMsg = type.FullName ?? $"???.{type.Name}";
-                    }
-
-                    methodMsg = typeMsg + "::" + method.Name;
+                    typeMsg = type.FullName ?? $"???.{type.Name}";
                 }
 
-                string fileNameMsg = $"{frame.GetFileName()?.Split("/").Last() ?? "??.cs"}";
-                string lineNumberMsg = $"{frame.GetFileLineNumber()}";
-                string columnNumberMsg = $"{frame.GetFileColumnNumber()}";
-
-
-                frameMsg = $"at {methodMsg}() in {fileNameMsg}:{lineNumberMsg}.{columnNumberMsg}";
+                methodMsg = typeMsg + "::" + method.Name;
             }
+
+            string fileNameMsg = $"{frame.GetFileName()?.Split("/").Last() ?? "??.cs"}";
+            string lineNumberMsg = $"{frame.GetFileLineNumber()}";
+            string columnNumberMsg = $"{frame.GetFileColumnNumber()}";
+
+
+            string frameMsg = $"at {methodMsg}() in {fileNameMsg}:{lineNumberMsg}.{columnNumberMsg}";
+
             msg += $"{frameMsg}\n";
         }
 
@@ -92,5 +90,6 @@ public static class Program
         }
     }
 
-    public static async Task Main() => await Task.WhenAll(Discord.Dc.InitAsync(), Clash.Coc.InitAsync(), Sql.Db.InitAsync());
+    public static async Task Main() =>
+        await Task.WhenAll(Discord.Dc.InitAsync(), Clash.Coc.InitAsync(), Sql.DbObj.InitAsync());
 }

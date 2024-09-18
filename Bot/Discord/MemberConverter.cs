@@ -31,8 +31,8 @@ internal sealed class MemberConverter : TypeConverter
                 return TypeConverters.Error("This Discord user isn't linked to any CoC account.");
             }
 
-            // REMOVE THIS AFTER DB REDESIGN - SKIPPING THE CHECK BELOW BECUZ FOR NOW, IN DB = MUST BE IN CLAN
-            Member sqlMember = Db.GetMember(main.MainId)!;
+            // TODO: REMOVE THIS AFTER DB REDESIGN - SKIPPING THE CHECK BELOW BECUZ FOR NOW, IN DB = MUST BE IN CLAN
+            Member sqlMember = Member.TryFetch(main.MainId)!;
             return TypeConverters.Success(sqlMember);
 
             /*
@@ -53,7 +53,7 @@ internal sealed class MemberConverter : TypeConverter
             // Check whether the coc account of the alias is still in the clan
             string aliasCocId = dbAlias.CocId;
             ClanMember? aliasClanMember = Coc.TryGetMember(aliasCocId);
-            Member sqlMember = Db.GetMember(aliasCocId)!;
+            Member sqlMember = Member.TryFetch(aliasCocId)!;
 
             return aliasClanMember == null
                 ? TypeConverters.Error("The player of this alias isn't in the clan.")
@@ -64,7 +64,7 @@ internal sealed class MemberConverter : TypeConverter
         string? cocId = Coc.GetMemberId(input);
         if (cocId != null)
         {
-            Member sqlMember = Db.GetMember(cocId)!;
+            Member sqlMember = Member.TryFetch(cocId)!;
             return TypeConverters.Success(sqlMember);
         }
 
@@ -72,7 +72,7 @@ internal sealed class MemberConverter : TypeConverter
         ClanMember? member = Coc.TryGetMember(input);
         if (member != null)
         {
-            Member sqlMember = Db.GetMember(input)!;
+            Member sqlMember = Member.TryFetch(input)!;
             return TypeConverters.Success(sqlMember);
         }
 

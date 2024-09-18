@@ -53,6 +53,11 @@ For each task run, if it needs to interact with Discord, it will call the approp
 3. SQL: All SQL statements should be executed only in `Sql/`. Same logic as above
 4. How to order things in a class:
 ```cs
+/* Namespace, followed by the main class right in the next line */
+namespace Hyperstellar;
+public class Example 
+{
+
 /* Nested class/struct etc. */
 private class NestedClass
 {
@@ -88,12 +93,14 @@ public Order(int param1, int param2) { }
 /* Factory methods */
 public static Order CreateOrder(int param1) { }
 
-/* Methods: Static first, then by access modifiers, then by Sync/Async */
+/* Methods: Static first, then by access modifiers, then by abstract/virtual/override/none, then by Sync/Async */
 private static async Task<string> GetClanNameAsync() { }
 private List<uint> FindFactors(uint number) { }
 private async Task ReportToCIA() { }
 public uint ComputeFactorial(uint number) { }
 public async Task ProcessPayment() { }
+
+}
 ```
 
 <a name="devnotes"></a>

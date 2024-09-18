@@ -3,7 +3,7 @@ using SQLite;
 
 namespace Hyperstellar.Sql;
 
-internal abstract class DbObj
+public abstract class DbObj
 {
     // Make this private after migration
     internal static readonly SQLiteConnection s_db = new("Hyperstellar.db");
@@ -16,5 +16,17 @@ internal abstract class DbObj
 
     internal static int InsertAll(IEnumerable objects) => s_db.InsertAll(objects);
 
+    internal static async Task InitAsync()
+    {
+        s_db.BeginTransaction();
+        await Program.TryForeverAsync(async () =>
+        {
+            await Task.Delay(5 * 60 * 1000);
+            Commit();
+        });
+    }
+
     internal virtual int Insert() => s_db.Insert(this);
+
+    internal int Delete() => s_db.Delete(this);
 }

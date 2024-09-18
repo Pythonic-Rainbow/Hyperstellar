@@ -2,7 +2,7 @@
 
 namespace Hyperstellar.Sql;
 
-public sealed class Main(string id)
+public sealed class Main(string id) : DbObj
 {
     [PrimaryKey, NotNull]
     public string MainId { get; set; } = id;
@@ -21,9 +21,7 @@ public sealed class Main(string id)
 
     public Main() : this("") { }
 
-    public bool Delete() => Db.s_db.Delete(this) == 1;
-
-    public bool Insert() => Db.s_db.Insert(this) == 1;
+    internal static Main? TryFetch(string id) => s_db.Table<Main>().FirstOrDefault(d => d.MainId == id);
 
     public bool Update() => Db.s_db.Update(this) == 1;
 }

@@ -26,7 +26,7 @@ internal sealed class ClanUtil
     internal static ClanUtil FromInit(Clan clan)
     {
         ClanUtil c = new(clan, []);
-        IEnumerable<string> existingMembers = Db.GetMembers().Select(m => m.CocId);
+        IEnumerable<string> existingMembers = Member.FetchAll().Select(m => m.CocId);
         foreach (string dbMember in existingMembers)
         {
             ClanMember? clanMember = clan.MemberList!.FirstOrDefault(m => m.Tag == dbMember);

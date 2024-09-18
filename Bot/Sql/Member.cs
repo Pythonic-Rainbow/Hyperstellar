@@ -2,7 +2,7 @@
 using SQLite;
 
 namespace Hyperstellar.Sql;
-public class Member(string cocId)
+public class Member(string cocId) : DbObj
 {
     internal static event Action<Main, Main>? EventAltAdded;
 
@@ -11,12 +11,16 @@ public class Member(string cocId)
 
     public Member() : this("") { }
 
+    internal static IEnumerable<Member> FetchAll() => s_db.Table<Member>();
+
+    internal static Member? TryFetch(string cocId) => s_db.Table<Member>().FirstOrDefault(m => m.CocId == cocId);
+
     public void AddAlt(Member altMember)
     {
         Alt alt = new(altMember.CocId, CocId);
-        Db.s_db.Insert(alt);
-        Main altMain = Db.GetMain(altMember.CocId)!;
-        Main mainMain = Db.GetMain(CocId)!;
+        s_db.Insert(alt);
+        Main altMain = Main.TryFetch(altMember.CocId)!;
+        Main mainMain = Main.TryFetch(CocId)!;
         EventAltAdded!(altMain, mainMain);
         if (altMain.Discord != null)
         {

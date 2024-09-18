@@ -45,7 +45,7 @@ internal static class Phaser
         foreach (ClanCapitalRaidSeasonAttacker atk in Coc.GetRaidAttackers(season))
         {
             // If in the db, mark as raided
-            Member? member = Db.GetMember(atk.Tag);
+            Member? member = Member.TryFetch(atk.Tag);
             if (member != null)
             {
                 Main main = member.GetEffectiveMain();
@@ -202,7 +202,7 @@ internal static class Phaser
             {
                 IEnumerable<Alt> alts = new Member(member).GetAltsByMain();
                 int accountCount = alts.Count() + 1;
-                Main main = Db.GetMain(member)!;
+                Main main = Main.TryFetch(member)!;
                 bool violated = false;
                 Violator violator = new(member);
 
