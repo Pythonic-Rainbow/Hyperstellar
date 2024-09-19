@@ -1,29 +1,38 @@
+﻿using System.Collections;
 using SQLite;
 
 namespace Hyperstellar.Sql;
 
-internal static class Db
+public abstract class Db
 {
-    internal static readonly SQLiteConnection s_db = DbObj.s_db;
+    private protected static readonly SQLiteConnection s_db = new("Hyperstellar.db");
 
-    internal static Main? GetMainByDiscord(ulong uid) => s_db.Table<Main>().FirstOrDefault(m => m.Discord == uid);
-
-    internal static IEnumerable<Main> GetDonations() => s_db.Table<Main>();
-
-    internal static bool UpdateMain(Main main) => s_db.Update(main) == 1;
-
-    internal static CocMemberAlias? TryGetAlias(string alias)
+    internal static void Commit()
     {
-        alias = alias.ToLower();
-        return s_db.Table<CocMemberAlias>().FirstOrDefault(a => a.Alias == alias);
+        s_db.Commit();
+        s_db.BeginTransaction();
     }
 
-    internal static IEnumerable<CocMemberAlias> GetAliases() => s_db.Table<CocMemberAlias>();
+    internal static int InsertAll(IEnumerable objects) => s_db.InsertAll(objects);
 
-    internal static bool AddAlias(string alias, Member member)
+    internal static async Task InitAsync()
     {
-        CocMemberAlias cocMemberAlias = new(alias.ToLower(), member.CocId);
-        int count = s_db.Insert(cocMemberAlias);
-        return count == 1;
+        s_db.BeginTransaction();
+        await Program.TryUntilAsync(async () =>
+        {
+            await Task.Delay(5 * 60 * 1000);
+            Commit();
+        }, runForever: true);
     }
+
+    internal virtual int Insert() => s_db.Insert(this);
+
+    internal int Delete() => s_db.Delete(this);
+
+    internal int Update() => s_db.Update(this);
+}
+
+public abstract class DbObj<T> : Db where T : DbObj<T>, new()
+{
+    internal static TableQuery<T> FetchAll() => s_db.Table<T>();
 }

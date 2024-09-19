@@ -25,7 +25,7 @@ internal sealed class MemberConverter : TypeConverter
             ulong uid = Convert.ToUInt64(captured[2..^1].ToString());  // 123
 
             // Checks whether this Discord user is linked to a main
-            Main? main = Db.GetMainByDiscord(uid);
+            Main? main = Main.TryFetchByDiscord(uid);
             if (main == null)
             {
                 return TypeConverters.Error("This Discord user isn't linked to any CoC account.");
@@ -47,7 +47,7 @@ internal sealed class MemberConverter : TypeConverter
         }
 
         // Check whether input matches an alias
-        CocMemberAlias? dbAlias = Db.TryGetAlias(input);
+        CocAlias? dbAlias = CocAlias.TryFetch(input);
         if (dbAlias != null)
         {
             // Check whether the coc account of the alias is still in the clan

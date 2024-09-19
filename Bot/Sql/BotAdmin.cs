@@ -2,7 +2,7 @@
 
 namespace Hyperstellar.Sql;
 
-internal sealed class BotAdmin(ulong id) : DbObj
+internal sealed class BotAdmin(ulong id) : DbObj<BotAdmin>
 {
     internal static readonly HashSet<ulong> s_admins = s_db.Table<BotAdmin>().Select(a => a.Id).ToHashSet();
 

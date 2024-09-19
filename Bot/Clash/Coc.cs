@@ -41,7 +41,7 @@ internal static class Coc
 
         string[] members = [.. clan._joiningMembers.Keys];
         Member[] memberObjects = [.. members.Select(memberId => new Member(memberId))];
-        DbObj.InsertAll(memberObjects);
+        Db.InsertAll(memberObjects);
         string membersMsg = string.Join(", ", members);
         Console.WriteLine($"{membersMsg} joined");
 

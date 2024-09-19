@@ -57,7 +57,7 @@ internal static class Phaser
 
     private static void Init()
     {
-        IEnumerable<IGrouping<long, Main>> donationGroups = Db.GetDonations()
+        IEnumerable<IGrouping<long, Main>> donationGroups = Main.FetchAll()
             .GroupBy(d => d.Checked)
             .OrderBy(g => g.Key);
         DateTimeOffset now = DateTimeOffset.UtcNow;
@@ -103,7 +103,7 @@ internal static class Phaser
             Main main = new Member(tag).GetEffectiveMain();
             main.Donated += (uint)donated;
             Console.WriteLine($"[Donate25] {tag} {donated}");
-            Db.UpdateMain(main);
+            main.Update();
         }
     }
 

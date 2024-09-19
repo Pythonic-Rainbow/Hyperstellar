@@ -16,7 +16,7 @@ public class Cmds : InteractionModuleBase
     {
         if (commit)
         {
-            DbObj.Commit();
+            Db.Commit();
         }
         await RespondAsync("Ok", ephemeral: true);
         Environment.Exit(0);
@@ -26,7 +26,7 @@ public class Cmds : InteractionModuleBase
     [SlashCommand("commit", "[Owner] Commits db")]
     public async Task CommitAsync()
     {
-        DbObj.Commit();
+        Db.Commit();
         await RespondAsync("Committed", ephemeral: true);
     }
 
@@ -134,7 +134,7 @@ public class Cmds : InteractionModuleBase
     [SlashCommand("alias", "[Admin] Sets an alias for a Coc member")]
     public async Task AliasAsync(string alias, Member member)
     {
-        bool success = Db.AddAlias(alias, member);
+        bool success = new CocAlias(alias, member.CocId).Insert() == 1;
         if (success)
         {
             await RespondAsync($"`{alias}` is now an alias of `{member.GetName()}`");
@@ -149,7 +149,7 @@ public class Cmds : InteractionModuleBase
     public async Task AliasesAsync()
     {
         string msg = "";
-        foreach (CocMemberAlias alias in Db.GetAliases())
+        foreach (CocAlias alias in CocAlias.FetchAll())
         {
             ClanMember? clanMember = Coc.TryGetMember(alias.CocId);
             string name = clanMember == null ? "" : clanMember.Name;

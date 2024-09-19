@@ -1,8 +1,7 @@
 ﻿using SQLite;
 
 namespace Hyperstellar.Sql;
-
-public sealed class Main(string id) : DbObj
+public sealed class Main(string id) : DbObj<Main>
 {
     [PrimaryKey, NotNull]
     public string MainId { get; set; } = id;
@@ -21,7 +20,7 @@ public sealed class Main(string id) : DbObj
 
     public Main() : this("") { }
 
-    internal static Main? TryFetch(string id) => s_db.Table<Main>().FirstOrDefault(d => d.MainId == id);
+    internal static Main? TryFetch(string id) => FetchAll().FirstOrDefault(d => d.MainId == id);
 
-    public bool Update() => Db.s_db.Update(this) == 1;
+    internal static Main? TryFetchByDiscord(ulong uid) => FetchAll().FirstOrDefault(m => m.Discord == uid);
 }

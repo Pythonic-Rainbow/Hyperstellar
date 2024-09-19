@@ -2,7 +2,7 @@
 
 namespace Hyperstellar.Sql;
 
-public sealed class Alt(string altId, string mainId)
+public sealed class Alt(string altId, string mainId) : DbObj<Alt>
 {
     [PrimaryKey, NotNull]
     public string AltId { get; set; } = altId;
@@ -12,15 +12,13 @@ public sealed class Alt(string altId, string mainId)
 
     public Alt() : this("", "") { }
 
-    public TableQuery<Alt> GetOtherAlts() => Db.s_db.Table<Alt>().Where(a => a.MainId == MainId && a.AltId != AltId);
+    public TableQuery<Alt> GetOtherAlts() => FetchAll().Where(a => a.MainId == MainId && a.AltId != AltId);
 
-    public Main GetMain() => Db.s_db.Table<Main>().Where(m => m.MainId == MainId).First();
+    public Main GetMain() => Main.FetchAll().First(m => m.MainId == MainId);
 
     public bool UpdateMain(string id)
     {
         MainId = id;
-        return Db.s_db.Update(this) == 1;
+        return s_db.Update(this) == 1;
     }
-
-    public bool Delete() => Db.s_db.Delete(this) == 1;
 }
