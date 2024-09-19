@@ -5,8 +5,11 @@ namespace Hyperstellar;
 
 public static class Program
 {
-    private static void DefaultTryForeverExceptionFunc(Exception ex) =>
-        Console.Error.WriteLine(GetExceptionStackTraceString(ex));
+    private static void DefaultTryForeverExceptionFunc(Exception ex)
+    {
+        ex.Demystify();
+        Console.WriteLine(ex);
+    }
 
     internal static string GetExceptionStackTraceString(Exception ex)
     {
@@ -45,7 +48,7 @@ public static class Program
         return msg;
     }
 
-    internal static async Task<T> TryForeverAsync<T>(Func<Task<T>> tryFunc, Func<Exception, Task>? repeatFunc = null)
+    internal static async Task<T> TryUntilAsync<T>(Func<Task<T>> tryFunc, Func<Exception, Task>? repeatFunc = null)
     {
         while (true)
         {
@@ -67,14 +70,18 @@ public static class Program
         }
     }
 
-    internal static async Task TryForeverAsync(Func<Task> tryFunc, Func<Exception, Task>? repeatFunc = null)
+    internal static async Task TryUntilAsync(Func<Task> tryFunc, Func<Exception, Task>? repeatFunc = null,
+        bool runForever = false)
     {
         while (true)
         {
             try
             {
                 await tryFunc();
-                return;
+                if (!runForever)
+                {
+                    return;
+                }
             }
             catch (Exception ex)
             {

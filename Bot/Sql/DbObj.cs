@@ -19,11 +19,11 @@ public abstract class DbObj
     internal static async Task InitAsync()
     {
         s_db.BeginTransaction();
-        await Program.TryForeverAsync(async () =>
+        await Program.TryUntilAsync(async () =>
         {
             await Task.Delay(5 * 60 * 1000);
             Commit();
-        });
+        }, runForever: true);
     }
 
     internal virtual int Insert() => s_db.Insert(this);

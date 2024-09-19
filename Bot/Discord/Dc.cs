@@ -127,7 +127,7 @@ internal static class Dc
         }
 
         // Always waits until the exception is actually sent
-        return await Program.TryForeverAsync<RestUserMessage>(
+        return await Program.TryUntilAsync<RestUserMessage>(
             async () => await s_botLog.SendMessageAsync(s_botApp.Owner.Mention, embed: emb.Build())
             );
     }

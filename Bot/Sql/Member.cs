@@ -32,23 +32,23 @@ public class Member(string cocId) : DbObj
 
     public bool IsAlt()
     {
-        TableQuery<Alt> result = Db.s_db.Table<Alt>().Where(a => a.AltId == CocId);
+        TableQuery<Alt> result = s_db.Table<Alt>().Where(a => a.AltId == CocId);
         return result.Any();
     }
 
     public bool IsAltMain()
     {
-        TableQuery<Alt> result = Db.s_db.Table<Alt>().Where(a => a.MainId == CocId);
+        TableQuery<Alt> result = s_db.Table<Alt>().Where(a => a.MainId == CocId);
         return result.Any();
     }
 
-    public Alt? TryToAlt() => Db.s_db.Table<Alt>().FirstOrDefault(a => a.AltId == CocId);
+    public Alt? TryToAlt() => s_db.Table<Alt>().FirstOrDefault(a => a.AltId == CocId);
 
-    public Main? TryToMain() => Db.s_db.Table<Main>().FirstOrDefault(m => m.MainId == CocId);
+    public Main? TryToMain() => s_db.Table<Main>().FirstOrDefault(m => m.MainId == CocId);
 
-    public Main ToMain() => Db.s_db.Table<Main>().First(m => m.MainId == CocId);
+    public Main ToMain() => s_db.Table<Main>().First(m => m.MainId == CocId);
 
-    public TableQuery<Alt> GetAltsByMain() => Db.s_db.Table<Alt>().Where(a => a.MainId == CocId);
+    public TableQuery<Alt> GetAltsByMain() => s_db.Table<Alt>().Where(a => a.MainId == CocId);
 
     public string GetName() => Coc.GetMember(CocId).Name;
 
@@ -56,6 +56,6 @@ public class Member(string cocId) : DbObj
     {
         Alt? alt = TryToAlt();
         string mainId = alt == null ? CocId : alt.MainId;
-        return Db.s_db.Table<Main>().First(m => m.MainId == mainId);
+        return s_db.Table<Main>().First(m => m.MainId == mainId);
     }
 }

@@ -31,7 +31,7 @@ internal sealed class ReadyHandler(int msTryInterval, int msExceptionInterval, F
                 else if (_repeatCount < 10)
                 {
                     _repeatCount++;
-                    await Program.TryForeverAsync(async () =>
+                    await Program.TryUntilAsync(async () =>
                     {
                         await _msg!.ModifyAsync(mp => mp.Content = _msg.Content + "\n" + DateTime.Now.ToString("HH:mm:ss"));
                     });
