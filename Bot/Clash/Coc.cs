@@ -154,6 +154,9 @@ internal static class Coc
 
     private static async Task CheckDonationsAsync(ClanUtil clan)
     {
+        long currentTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        Dictionary<string, Donation> donations = [];
+
         List<Tuple<string, int>> donDelta = [], recDelta = [];
         Dictionary<string, string> accToMainAcc = [];
         AdjacencyGraph<string, TaggedEdge<string, int>> graph = new(false);
@@ -167,6 +170,12 @@ internal static class Coc
             if (current.Donations > previous.Donations)
             {
                 int donated = current.Donations - previous.Donations;
+
+                Donation donation = new(currentTime, tag)
+                {
+                    Donated = donated
+                };
+                donations[tag] = donation;
 
                 donDelta.Add(new(current.Tag, donated));
 
@@ -186,6 +195,20 @@ internal static class Coc
             {
                 string vertexName = $"#{current.Tag}"; // Double # for received node
                 int received = current.DonationsReceived - previous.DonationsReceived;
+                if (donations.TryGetValue(tag, out Donation? value))
+                {
+                    value.Received = received;
+                }
+                else
+                {
+                    Donation donation = new(currentTime, tag)
+                    {
+                        Received = received
+                    };
+
+                    donations[tag] = donation;
+                }
+
                 recDelta.Add(new(current.Tag, received));
                 graph.AddVertex(vertexName);
                 graph.AddEdge(new(vertexName, "t", received));
@@ -198,6 +221,8 @@ internal static class Coc
                 }
             }
         }
+
+        Db.InsertAll(donations.Values);
 
         if (graph.VertexCount > 2)
         {
