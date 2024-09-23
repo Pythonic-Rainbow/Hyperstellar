@@ -58,8 +58,8 @@ internal static class Phaser
     private static void Init()
     {
         IEnumerable<IGrouping<long, Main>> donationGroups = Main.FetchAll()
-            .GroupBy(d => d.Checked)
-            .OrderBy(g => g.Key);
+            .GroupBy(static d => d.Checked)
+            .OrderBy(static g => g.Key);
         DateTimeOffset now = DateTimeOffset.UtcNow;
         Node expiredNode = new(GetNowNextTime()); // Node for expired donations
 

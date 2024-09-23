@@ -83,14 +83,14 @@ internal static class Dc
     private static async Task DonationsChangedAsync(IEnumerable<Tuple<string, int>> donDelta, IEnumerable<Tuple<string, int>> recDelta)
     {
         string msg = "[DNT] ";
-        msg += string.Join(", ", donDelta.Select(t =>
+        msg += string.Join(", ", donDelta.Select(static t =>
         {
             (string tag, int donated) = t;
             string name = Coc.GetMember(tag).Name;
             return $"{name}: {donated}";
         }));
         msg += "\n=> ";
-        msg += string.Join(", ", recDelta.Select(t =>
+        msg += string.Join(", ", recDelta.Select(static t =>
         {
             (string tag, int received) = t;
             string name = Coc.GetMember(tag).Name;

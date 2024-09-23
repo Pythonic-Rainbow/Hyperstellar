@@ -18,7 +18,7 @@ public abstract class Db
     internal static async Task InitAsync()
     {
         s_db.BeginTransaction();
-        await Program.TryUntilAsync(async () =>
+        await Program.TryUntilAsync(static async () =>
         {
             await Task.Delay(5 * 60 * 1000);
             Commit();

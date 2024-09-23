@@ -105,7 +105,7 @@ public class Cmds : InteractionModuleBase
         Alt? alt = clanMember.TryToAlt();
         if (alt == null)
         {
-            embed.Description = string.Join(", ", clanMember.GetAltsByMain().Select(a => Coc.GetMember(a.AltId).Name));
+            embed.Description = string.Join(", ", clanMember.GetAltsByMain().Select(static a => Coc.GetMember(a.AltId).Name));
             Main main = clanMember.ToMain();
             if (main.Discord != null)
             {
@@ -115,7 +115,7 @@ public class Cmds : InteractionModuleBase
         else
         {
             embed.Description = $"__{Coc.GetMember(alt.MainId).Name}__";
-            IEnumerable<string> altNames = alt.GetOtherAlts().Select(a => Coc.GetMember(a.AltId).Name);
+            IEnumerable<string> altNames = alt.GetOtherAlts().Select(static a => Coc.GetMember(a.AltId).Name);
             foreach (string altName in altNames)
             {
                 embed.Description += $", {altName}";
