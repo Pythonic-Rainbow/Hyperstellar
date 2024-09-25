@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Discord;
 using Discord.Interactions;
 using Discord.Rest;
@@ -61,6 +61,10 @@ internal static class Dc
 
     private static async Task PhaseViolatedAsync(IEnumerable<Violator> violators)
     {
+        IEnumerable<string> violatorMsgs = violators.Select(ProcessViolator);
+        await s_botLog.SendMessageAsync($"[REQ]\n{string.Join("\n", violatorMsgs)}");
+        return;
+
         static string ProcessViolator(Violator v)
         {
             string name = Coc.GetMember(v._id).Name;
@@ -75,9 +79,6 @@ internal static class Dc
             }
             return $"{name} ({v._id}) {string.Join(", ", violations)}";
         }
-
-        IEnumerable<string> violatorMsgs = violators.Select(ProcessViolator);
-        await s_botLog.SendMessageAsync($"[REQ]\n{string.Join("\n", violatorMsgs)}");
     }
 
     private static async Task DonationsChangedAsync(IEnumerable<Tuple<string, int>> donDelta, IEnumerable<Tuple<string, int>> recDelta)

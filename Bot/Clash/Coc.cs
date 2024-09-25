@@ -21,6 +21,7 @@ internal static class Coc
     private static ClashOfClansClient s_client;
     private static ClanCapitalRaidSeason s_raidSeason;
     internal static ClanUtil Clan { get; private set; } = new();
+    internal static readonly Task s_initTask = InitAsync();
     internal static event Action<ClanMember, Main> EventMemberJoined;
     internal static event Action<ClanMember, string?> EventMemberLeft;
     internal static event Action<ClanCapitalRaidSeason> EventInitRaid;
@@ -73,6 +74,7 @@ internal static class Coc
                 {
                     alts.ElementAt(i).UpdateMain(alt.AltId);
                 }
+
                 alt.Delete();
                 // Maybe adapt this in the future if need to modify attributes when replacing main
                 Main main = fakeMem.ToMain();
@@ -80,6 +82,7 @@ internal static class Coc
                 main.MainId = altId;
                 main.Insert();
             }
+
             // This is before Db.DelMem below so that we can remap Donation to new mainId
             // ^ No longer true because the remap is done ABOVE now but I'll still leave this comment
             EventMemberLeft(member, altId);
@@ -90,17 +93,53 @@ internal static class Coc
         {
             new Member(member).Delete();
         }
+
         string membersMsg = string.Join(", ", members);
         Console.WriteLine($"{membersMsg} left");
     }
 
     private static async Task BotReadyAsync()
     {
-        ReadyHandler handler = new(10000, 60000, PollAsync);
-        await handler.RunAsync();
+        await s_initTask;
+        Poll clanPoll = new(10000, 60000, PollAsync);
+        Poll raidPoll = new(0, 10000, PollRaidAsync);
+        await Task.WhenAll(clanPoll.RunAsync(), raidPoll.RunAsync());
     }
 
     private static async Task<Clan> GetClanAsync() => await s_client.Clans.GetClanAsync(ClanId);
+
+    private static async Task InitAsync()
+    {
+        /* Try all tokens and init clan */
+        int counter = 1;
+        foreach (string token in Secrets.s_coc)
+        {
+            s_client = new(token);
+            try
+            {
+                Clan = ClanUtil.FromInit(await GetClanAsync());
+                Console.WriteLine($"Logged into CoC with token {counter}");
+
+                // Login successful, now try init raid
+                ClanCapitalRaidSeason season = await GetRaidSeasonAsync();
+                // If last raid happened within a week, we count it as valid
+                EventInitRaid(season);
+                s_raidSeason = season;
+
+                return;
+            }
+            catch (ClashOfClansException ex)
+            {
+                if (ex.Error.Reason.StartsWith("accessDenied"))
+                {
+                    counter++;
+                    continue;
+                }
+                throw;
+            }
+        }
+        throw new InvalidDataException("All CoC tokens are invalid!");
+    }
 
     private static async Task PollAsync()
     {
@@ -123,23 +162,12 @@ internal static class Coc
 
     private static async Task PollRaidAsync()
     {
-        static async Task WaitRaidAsync()
-        {
-            await Task.Delay(s_raidSeason.EndTime - DateTime.UtcNow);
-            s_raidSeason = await GetRaidSeasonAsync();
-            while (s_raidSeason.State != ClanCapitalRaidSeasonState.Ended)
-            {
-                await Task.Delay(20000);
-                s_raidSeason = await GetRaidSeasonAsync();
-            }
-            EventRaidCompleted(s_raidSeason);
-        }
-
         // Check if there is an ongoing raid
         if (s_raidSeason.EndTime > DateTime.UtcNow)
         {
             await WaitRaidAsync();
         }
+
         while (true)
         {
             await Task.Delay(60 * 60 * 1000); // 1 hour
@@ -150,6 +178,38 @@ internal static class Coc
                 await WaitRaidAsync();
             }
         }
+
+        static async Task WaitRaidAsync()
+        {
+            await Task.Delay(s_raidSeason.EndTime - DateTime.UtcNow);
+            s_raidSeason = await GetRaidSeasonAsync();
+            while (s_raidSeason.State != ClanCapitalRaidSeasonState.Ended)
+            {
+                await Task.Delay(20000);
+                s_raidSeason = await GetRaidSeasonAsync();
+            }
+
+            // Raid ended
+            Raid[] raids = new Raid[s_raidSeason.Members!.Count];
+            for (int i = 0; i < s_raidSeason.Members.Count; i++)
+            {
+                ClanCapitalRaidSeasonMember attacker = s_raidSeason.Members[i];
+                long timestamp = ((DateTimeOffset)s_raidSeason.EndTime).ToUnixTimeSeconds();
+                raids[i] = new(timestamp, attacker.Tag, attacker.Attacks);
+            }
+
+            Db.InsertAll(raids);
+
+            EventRaidCompleted(s_raidSeason);
+        }
+    }
+
+    private static async Task<ClanCapitalRaidSeason> GetRaidSeasonAsync()
+    {
+        Query query = new() { Limit = 1 };
+        ClanCapitalRaidSeasons seasons =
+            (ClanCapitalRaidSeasons)await s_client.Clans.GetCapitalRaidSeasonsAsync(ClanId, query);
+        return seasons.First();
     }
 
     private static async Task CheckDonationsAsync(ClanUtil clan)
@@ -214,8 +274,8 @@ internal static class Coc
                 graph.AddEdge(new(vertexName, "t", received));
 
                 foreach (string donor in accToMainAcc
-                    .Where(kv => kv.Value != new Member(current.Tag).GetEffectiveMain().MainId)
-                    .Select(kv => kv.Key))
+                             .Where(kv => kv.Value != new Member(current.Tag).GetEffectiveMain().MainId)
+                             .Select(kv => kv.Key))
                 {
                     graph.AddEdge(new(donor, vertexName, received));
                 }
@@ -240,15 +300,12 @@ internal static class Coc
                 e => e.Tag, // capacities
                 (_, _) => graph.Edges.First(), // EdgeFactory (isn't actually used by the algo)
                 reverseAlgo)
-            {
-                Source = "s",
-                Sink = "t"
-            };
+            { Source = "s", Sink = "t" };
             maxFlowAlgo.Compute();
 
             List<Tuple<string, int>> maxFlowDonations = [];
             foreach ((TaggedEdge<string, int> edge, double capa) in
-                maxFlowAlgo.ResidualCapacities.Where(ed => ed.Key.Source == "s"))
+                     maxFlowAlgo.ResidualCapacities.Where(ed => ed.Key.Source == "s"))
             {
                 int donated = (int)(edge.Tag - capa);
                 if (donated > 0)
@@ -261,6 +318,7 @@ internal static class Coc
             {
                 EventDonatedMaxFlow(maxFlowDonations);
             }
+
             await EventDonated(donDelta, recDelta);
         }
     }
@@ -295,52 +353,7 @@ internal static class Coc
                 }
             }
         }
+
         return set;
-    }
-
-    internal static async Task<ClanCapitalRaidSeason> GetRaidSeasonAsync()
-    {
-        Query query = new() { Limit = 1 };
-        ClanCapitalRaidSeasons seasons = (ClanCapitalRaidSeasons)await s_client.Clans.GetCapitalRaidSeasonsAsync(ClanId, query);
-        return seasons.First();
-    }
-
-    internal static async Task InitAsync()
-    {
-        static async Task InitClanAsync()
-        {
-            int counter = 1;
-            foreach (string token in Secrets.s_coc)
-            {
-                s_client = new(token);
-                try
-                {
-                    Clan = ClanUtil.FromInit(await GetClanAsync());
-                    Console.WriteLine($"Logged into CoC with token {counter}");
-                    return;
-                }
-                catch (ClashOfClansException ex)
-                {
-                    if (ex.Error.Reason.StartsWith("accessDenied"))
-                    {
-                        counter++;
-                        continue;
-                    }
-                    throw;
-                }
-            }
-            throw new InvalidDataException("All CoC tokens are invalid!");
-        }
-
-        static async Task InitRaidAsync()
-        {
-            ClanCapitalRaidSeason season = await GetRaidSeasonAsync();
-            // If last raid happened within a week, we count it as valid
-            EventInitRaid(season);
-            s_raidSeason = season;
-            _ = Task.Run(PollRaidAsync);
-        }
-
-        await Task.WhenAll(InitClanAsync(), InitRaidAsync());
     }
 }

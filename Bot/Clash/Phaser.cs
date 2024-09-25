@@ -174,7 +174,7 @@ internal static class Phaser
 
     private static async Task BotReadyAsync()
     {
-        ReadyHandler handler = new(0, 1000, CheckQueueAsync);
+        Poll handler = new(0, 1000, CheckQueueAsync);
         await handler.RunAsync();
     }
 

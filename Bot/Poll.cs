@@ -1,8 +1,9 @@
 using Discord.Rest;
+using Hyperstellar.Discord;
 
-namespace Hyperstellar.Discord;
+namespace Hyperstellar;
 
-internal sealed class ReadyHandler(int msTryInterval, int msExceptionInterval, Func<Task> tryFunc)
+internal sealed class Poll(int msTryInterval, int msExceptionInterval, Func<Task> tryFunc)
 {
     private Exception? _exception;
     private RestUserMessage? _msg;
