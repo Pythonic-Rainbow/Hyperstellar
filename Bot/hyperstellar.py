@@ -32,9 +32,16 @@ run_count = result['total_count']
 explode(run_count == 0, 'No workflow runs!')
 print(f'There are {run_count} runs')
 
-run = result['workflow_runs'][0]
+BRANCH = 'gha-4'
+
+for i in range(run_count):
+    run = result['workflow_runs'][i]
+    if run['head_branch'] == BRANCH:
+        break
+
 gha_title = run['display_title']
-print(f'Checking run: {gha_title}')
+run_branch = run['head_branch']
+print(f'Checking run ({run_branch}): {gha_title}')
 explode(run['status'] != 'completed', 'Run is not completed!')
 
 if gha_title == current_title:
@@ -51,7 +58,7 @@ else:
             explode(job['conclusion'] != 'success', 'Build failed!')
             break
     explode(not build_ok, 'No build job found!')
-    explode(run['head_branch'] != 'main', 'Branch not main')
+    # explode(run['head_branch'] != 'main', 'Branch not main')
     explode(run['pull_requests'], 'Triggered by PR')
 
     run_id = run['id']
@@ -65,7 +72,13 @@ else:
     explode(artifact['name'] != 'Bot', 'Artifact name not Bot!')
 
     download_url = artifact['archive_download_url']
-    req = request.Request(download_url, headers={'Authorization': f'Bearer {token}'})
+    print(download_url)
+    # download_url = f"https://github.com/TCLRainbow/Hyperstellar/actions/runs/11033362227/artifacts/1976833830"
+
+    headers = {'Authorization': f'Bearer {token}',
+    'User-Agent': 'insomnia/10.0',
+    'header': 'application/vnd.github+json'}
+    req = request.Request(download_url, headers=headers)
     os.chdir('./Hyperstellar')
     print('Downloading')
     with request.urlopen(req) as resp:
