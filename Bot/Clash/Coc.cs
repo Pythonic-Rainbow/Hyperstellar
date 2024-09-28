@@ -191,10 +191,10 @@ internal static class Coc
 
             // Raid ended
             Raid[] raids = new Raid[s_raidSeason.Members!.Count];
+            long timestamp = ((DateTimeOffset)s_raidSeason.EndTime).ToUnixTimeSeconds();
             for (int i = 0; i < s_raidSeason.Members.Count; i++)
             {
                 ClanCapitalRaidSeasonMember attacker = s_raidSeason.Members[i];
-                long timestamp = ((DateTimeOffset)s_raidSeason.EndTime).ToUnixTimeSeconds();
                 raids[i] = new(timestamp, attacker.Tag, attacker.Attacks);
             }
 

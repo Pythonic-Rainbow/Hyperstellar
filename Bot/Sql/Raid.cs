@@ -1,7 +1,7 @@
 using SQLite;
 
 namespace Hyperstellar.Sql;
-public class Raid(long endTime, string cocId, int count)
+public class Raid(long endTime, string cocId, int count) : DbObj<Raid>
 {
     [PrimaryKey, NotNull]
     public long EndTime { get; set; } = endTime;

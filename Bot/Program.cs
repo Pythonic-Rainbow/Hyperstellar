@@ -48,7 +48,8 @@ public static class Program
         return msg;
     }
 
-    internal static async Task<T> TryUntilAsync<T>(Func<Task<T>> tryFunc, Func<Exception, Task>? repeatFunc = null)
+    internal static async Task<T> TryUntilAsync<T>(Func<Task<T>> tryFunc, Func<Exception, Task>? repeatFunc = null,
+        int msRetryWaitInterval = 0)
     {
         while (true)
         {
@@ -66,6 +67,8 @@ public static class Program
                 {
                     DefaultTryForeverExceptionFunc(ex);
                 }
+
+                await Task.Delay(msRetryWaitInterval);
             }
         }
     }
