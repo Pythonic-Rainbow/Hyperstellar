@@ -30,6 +30,7 @@ public abstract class Db
     internal int Delete() => s_db.Delete(this);
 
     internal int Update() => s_db.Update(this);
+
 }
 
 public abstract class DbObj<T> : Db where T : DbObj<T>, new()

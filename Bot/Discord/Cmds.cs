@@ -47,9 +47,9 @@ public class Cmds : InteractionModuleBase
 
     [RequireAdmin]
     [SlashCommand("alt", "[Admin] Links an alt to a main")]
-    public async Task AltAsync(Member alt, Member main)
+    public async Task AltAsync(Account alt, Account main)
     {
-        if (alt.CocId == main.CocId)
+        if (alt.Id == main.Id)
         {
             await RespondAsync("Bro alt must be different from main bruh");
             return;
@@ -66,16 +66,16 @@ public class Cmds : InteractionModuleBase
         }
 
         main.AddAlt(alt);
-        ClanMember clanAlt = Coc.GetMember(alt.CocId);
-        ClanMember clanMain = Coc.GetMember(main.CocId);
+        ClanMember clanAlt = Coc.GetMember(alt.Id);
+        ClanMember clanMain = Coc.GetMember(main.Id);
         await RespondAsync($"`{clanAlt.Name}` is now an alt of `{clanMain.Name}`");
     }
 
     [RequireAdmin]
     [SlashCommand("discord", "[Admin] Links a Discord account to a Main")]
-    public async Task DiscordAsync(Member coc, IGuildUser discord)
+    public async Task DiscordAsync(Account member, IGuildUser discord)
     {
-        Main? main = coc.TryToMain();
+        Main? main = member.TryToMain();
         if (main == null)
         {
             await RespondAsync("`coc` can't be an alt!");
@@ -92,9 +92,9 @@ public class Cmds : InteractionModuleBase
     }
 
     [SlashCommand("info", "Shows info of a clan member")]
-    public async Task InfoAsync(Member clanMember)
+    public async Task InfoAsync(Account clanMember)
     {
-        ClanMember cocMem = Coc.GetMember(clanMember.CocId);
+        ClanMember cocMem = Coc.GetMember(clanMember.Id);
 
         EmbedBuilder embed = new()
         {
@@ -132,9 +132,9 @@ public class Cmds : InteractionModuleBase
 
     [RequireAdmin]
     [SlashCommand("alias", "[Admin] Sets an alias for a Coc member")]
-    public async Task AliasAsync(string alias, Member member)
+    public async Task AliasAsync(string alias, Account member)
     {
-        bool success = new CocAlias(alias, member.CocId).Insert() == 1;
+        bool success = new CocAlias(alias, member.Id).Insert() == 1;
         if (success)
         {
             await RespondAsync($"`{alias}` is now an alias of `{member.GetName()}`");

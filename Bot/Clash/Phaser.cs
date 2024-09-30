@@ -25,7 +25,7 @@ internal static class Phaser
         Coc.EventInitRaid += InitRaid;
         Coc.EventRaidCompleted += ProcessRaid;
         Dc.EventBotReady += BotReadyAsync;
-        Member.EventAltAdded += AltAdded;
+        Account.EventAltAdded += AltAdded;
 
         Init();
     }
@@ -45,7 +45,7 @@ internal static class Phaser
         foreach (ClanCapitalRaidSeasonAttacker atk in Coc.GetRaidAttackers(season))
         {
             // If in the db, mark as raided
-            Member? member = Member.TryFetch(atk.Tag);
+            Account? member = Account.TryFetch(atk.Tag);
             if (member != null)
             {
                 Main main = member.GetEffectiveMain();
@@ -100,7 +100,7 @@ internal static class Phaser
     {
         foreach ((string tag, int donated) in donations)
         {
-            Main main = new Member(tag).GetEffectiveMain();
+            Main main = new Account(tag).GetEffectiveMain();
             main.Donated += (uint)donated;
             Console.WriteLine($"[Donate25] {tag} {donated}");
             main.Update();
@@ -200,7 +200,7 @@ internal static class Phaser
             List<Violator> violators = [];
             foreach (string member in node._ids)
             {
-                IEnumerable<Alt> alts = new Member(member).GetAltsByMain();
+                IEnumerable<Alt> alts = new Account(member).GetAltsByMain();
                 int accountCount = alts.Count() + 1;
                 Main main = Main.TryFetch(member)!;
                 bool violated = false;

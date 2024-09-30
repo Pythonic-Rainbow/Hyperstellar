@@ -21,7 +21,7 @@ internal static class Dc
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     {
         s_interactionSvc = new(s_bot); // Dont make it inline instantiate because s_bot.Rest would still be null
-        s_interactionSvc.AddTypeConverter<Member>(new MemberConverter());
+        s_interactionSvc.AddTypeConverter<Account>(new MemberConverter());
 
         Coc.EventDonated += DonationsChangedAsync;
         Phaser.EventViolated += PhaseViolatedAsync;

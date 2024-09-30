@@ -41,7 +41,7 @@ internal static class Coc
         }
 
         string[] members = [.. clan._joiningMembers.Keys];
-        Member[] memberObjects = [.. members.Select(static memberId => new Member(memberId))];
+        Account[] memberObjects = [.. members.Select(static memberId => new Account(memberId))];
         Db.InsertAll(memberObjects);
         string membersMsg = string.Join(", ", members);
         Console.WriteLine($"{membersMsg} joined");
@@ -63,7 +63,7 @@ internal static class Coc
 
         foreach ((string id, ClanMember member) in clan._leavingMembers)
         {
-            Member fakeMem = new(id);
+            Account fakeMem = new(id);
             IEnumerable<Alt> alts = fakeMem.GetAltsByMain();
             string? altId = null;
             if (alts.Any())
@@ -91,7 +91,7 @@ internal static class Coc
         string[] members = [.. clan._leavingMembers.Keys];
         foreach (string member in members)
         {
-            new Member(member).Delete();
+            new Account(member).Delete();
         }
 
         string membersMsg = string.Join(", ", members);
@@ -242,7 +242,7 @@ internal static class Coc
                 graph.AddVertex(current.Tag);
                 graph.AddEdge(new("s", current.Tag, donated));
 
-                accToMainAcc.TryAdd(current.Tag, new Member(current.Tag).GetEffectiveMain().MainId);
+                accToMainAcc.TryAdd(current.Tag, new Account(current.Tag).GetEffectiveMain().MainId);
             }
         }
 
@@ -274,7 +274,7 @@ internal static class Coc
                 graph.AddEdge(new(vertexName, "t", received));
 
                 foreach (string donor in accToMainAcc
-                             .Where(kv => kv.Value != new Member(current.Tag).GetEffectiveMain().MainId)
+                             .Where(kv => kv.Value != new Account(current.Tag).GetEffectiveMain().MainId)
                              .Select(kv => kv.Key))
                 {
                     graph.AddEdge(new(donor, vertexName, received));

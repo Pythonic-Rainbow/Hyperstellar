@@ -10,7 +10,7 @@ namespace Hyperstellar.Discord;
 
 internal sealed class MemberConverter : TypeConverter
 {
-    public override bool CanConvertTo(Type type) => typeof(Member).IsAssignableFrom(type);
+    public override bool CanConvertTo(Type type) => typeof(Account).IsAssignableFrom(type);
     public override ApplicationCommandOptionType GetDiscordType() => ApplicationCommandOptionType.String;
     public override Task<TypeConverterResult> ReadAsync(IInteractionContext context, IApplicationCommandInteractionDataOption option, IServiceProvider services)
     {
@@ -32,7 +32,7 @@ internal sealed class MemberConverter : TypeConverter
             }
 
             // TODO: REMOVE THIS AFTER DB REDESIGN - SKIPPING THE CHECK BELOW BECUZ FOR NOW, IN DB = MUST BE IN CLAN
-            Member sqlMember = Member.TryFetch(main.MainId)!;
+            Account sqlMember = Account.TryFetch(main.MainId)!;
             return TypeConverters.Success(sqlMember);
 
             /*
@@ -53,7 +53,7 @@ internal sealed class MemberConverter : TypeConverter
             // Check whether the coc account of the alias is still in the clan
             string aliasCocId = dbAlias.CocId;
             ClanMember? aliasClanMember = Coc.TryGetMember(aliasCocId);
-            Member sqlMember = Member.TryFetch(aliasCocId)!;
+            Account sqlMember = Account.TryFetch(aliasCocId)!;
 
             return aliasClanMember == null
                 ? TypeConverters.Error("The player of this alias isn't in the clan.")
@@ -64,7 +64,7 @@ internal sealed class MemberConverter : TypeConverter
         string? cocId = Coc.GetMemberId(input);
         if (cocId != null)
         {
-            Member sqlMember = Member.TryFetch(cocId)!;
+            Account sqlMember = Account.TryFetch(cocId)!;
             return TypeConverters.Success(sqlMember);
         }
 
@@ -72,7 +72,7 @@ internal sealed class MemberConverter : TypeConverter
         ClanMember? member = Coc.TryGetMember(input);
         if (member != null)
         {
-            Member sqlMember = Member.TryFetch(input)!;
+            Account sqlMember = Account.TryFetch(input)!;
             return TypeConverters.Success(sqlMember);
         }
 
