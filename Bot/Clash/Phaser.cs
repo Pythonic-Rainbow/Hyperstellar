@@ -20,7 +20,6 @@ internal static class Phaser
     static Phaser()
     {
         Coc.EventMemberJoined += MemberAdded;
-        Coc.EventMemberLeft += MemberLeft;
         Coc.EventDonatedMaxFlow += DonationChanged;
         Coc.EventInitRaid += InitRaid;
         Coc.EventRaidCompleted += ProcessRaid;
@@ -146,8 +145,9 @@ internal static class Phaser
         }
     }
 
-    private static void MemberLeft(ClanMember member, string? newMainId)
+    private static void MemberLeft(Account[] leftMembers)
     {
+        /*
         string id = member.Tag;
         Console.WriteLine($"[Donate25] Removing {id} -> {newMainId}");
         Node? node = s_queue.FirstOrDefault(n => n._ids.Remove(id));
@@ -160,6 +160,7 @@ internal static class Phaser
                 Console.WriteLine($"[Donate25] Added {newMainId} because it replaced {id} as main");
             }
         }
+        */
     }
 
     private static void InitRaid(ClanCapitalRaidSeason season)

@@ -21,7 +21,8 @@ internal static class Coc
     private static ClashOfClansClient s_client;
     private static ClanCapitalRaidSeason s_raidSeason;
     internal static Clan s_clan;
-    internal static event Action<ClanMember, Main> EventMemberJoined;
+    internal static event Action<IEnumerable<Account>> EventMemberJoined;
+    internal static event Action<Account[]> EventMemberRejoined;
     internal static event Action<Account[]> EventMemberLeft;
     internal static event Action<ClanCapitalRaidSeason> EventInitRaid;
     internal static event Action<ClanCapitalRaidSeason> EventRaidCompleted;
@@ -32,31 +33,16 @@ internal static class Coc
     static Coc()
     {
         EventMemberLeft += MembersLeft;
+        EventMemberRejoined += MembersRejoined;
+        EventMemberJoined += MembersJoined;
     }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-    private static void CheckMembersJoined(ClanUtil clan)
-    {
-        if (clan._joiningMembers.Count == 0)
-        {
-            return;
-        }
-
-        string[] members = [.. clan._joiningMembers.Keys];
-        Account[] memberObjects = [.. members.Select(static memberId => new Account(memberId))];
-        Db.InsertAll(memberObjects);
-        string membersMsg = string.Join(", ", members);
-        Console.WriteLine($"{membersMsg} joined");
-
-        foreach (ClanMember m in clan._joiningMembers.Values)
-        {
-            Main main = new(m.Tag);
-            EventMemberJoined(m, main);
-            main.Insert();
-        }
-    }
-
     private static void MembersLeft(Account[] leftMembers) => Console.WriteLine($"{string.Join(",", leftMembers.Select(a => a.Id))} left");
+
+    private static void MembersRejoined(Account[] leftMembers) => Console.WriteLine($"{string.Join(",", leftMembers.Select(a => a.Id))} rejoined");
+
+    private static void MembersJoined(IEnumerable<Account> leftMembers) => Console.WriteLine($"{string.Join(",", leftMembers.Select(a => a.Id))} joined");
 
     private static async Task<Clan> GetClanAsync() => await s_client.Clans.GetClanAsync(ClanId);
 
@@ -102,7 +88,14 @@ internal static class Coc
         {
             EventMemberLeft(leftMembers);
         }
-        CheckMembersJoined(clanUtil);
+        if (prevJoinAccounts.Length > 0)
+        {
+            EventMemberRejoined(prevJoinAccounts);
+        }
+        if (newJoinAccounts.Any())
+        {
+            EventMemberJoined(newJoinAccounts);
+        }
         await Task.WhenAll([
             CheckDonationsAsync(clanUtil)
         ]);
