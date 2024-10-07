@@ -14,6 +14,7 @@ internal static class Dc
     private static readonly InteractionService s_interactionSvc;
     private static IApplication s_botApp;
     private static readonly DiscordSocketClient s_bot = new();
+    internal static readonly TaskCompletionSource s_readyTcs = new();
     internal static event Func<Task> EventBotReady;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -39,6 +40,7 @@ internal static class Dc
 
     private static async Task Ready()
     {
+        s_readyTcs.SetResult();
         s_botLog = (SocketTextChannel)s_bot.GetChannel(Secrets.s_botLogId);
         _ = Task.Run(EventBotReady);
         await s_interactionSvc.RegisterCommandsGloballyAsync();

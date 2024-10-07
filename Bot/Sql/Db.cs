@@ -15,6 +15,8 @@ public abstract class Db
 
     internal static int InsertAll(IEnumerable objects) => s_db.InsertAll(objects);
 
+    internal static int UpdateAll(IEnumerable objects) => s_db.UpdateAll(objects);
+
     internal static async Task InitAsync()
     {
         s_db.BeginTransaction();

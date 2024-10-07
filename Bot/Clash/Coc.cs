@@ -20,17 +20,19 @@ internal static class Coc
     private const string ClanId = "#2QU2UCJJC"; // 2G8LP8PVV
     private static ClashOfClansClient s_client;
     private static ClanCapitalRaidSeason s_raidSeason;
-    internal static ClanUtil Clan { get; private set; } = new();
-    internal static readonly Task s_initTask = InitAsync();
+    internal static Clan s_clan;
     internal static event Action<ClanMember, Main> EventMemberJoined;
-    internal static event Action<ClanMember, string?> EventMemberLeft;
+    internal static event Action<Account[]> EventMemberLeft;
     internal static event Action<ClanCapitalRaidSeason> EventInitRaid;
     internal static event Action<ClanCapitalRaidSeason> EventRaidCompleted;
     internal static event Action<IEnumerable<Tuple<string, int>>> EventDonatedMaxFlow;
     internal static event Func<IEnumerable<Tuple<string, int>>, IEnumerable<Tuple<string, int>>, Task> EventDonated;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    static Coc() => Dc.EventBotReady += BotReadyAsync;
+    static Coc()
+    {
+        EventMemberLeft += MembersLeft;
+    }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
     private static void CheckMembersJoined(ClanUtil clan)
@@ -54,110 +56,57 @@ internal static class Coc
         }
     }
 
-    private static void CheckMembersLeft(ClanUtil clan)
-    {
-        if (clan._leavingMembers.Count == 0)
-        {
-            return;
-        }
-
-        foreach ((string id, ClanMember member) in clan._leavingMembers)
-        {
-            Account fakeMem = new(id);
-            IEnumerable<Alt> alts = fakeMem.GetAltsByMain();
-            string? altId = null;
-            if (alts.Any())
-            {
-                Alt alt = alts.First();
-                altId = alt.AltId;
-                for (int i = 1; i < alts.Count(); i++)
-                {
-                    alts.ElementAt(i).UpdateMain(alt.AltId);
-                }
-
-                alt.Delete();
-                // Maybe adapt this in the future if need to modify attributes when replacing main
-                Main main = fakeMem.ToMain();
-                main.Delete();
-                main.MainId = altId;
-                main.Insert();
-            }
-
-            // This is before Db.DelMem below so that we can remap Donation to new mainId
-            // ^ No longer true because the remap is done ABOVE now but I'll still leave this comment
-            EventMemberLeft(member, altId);
-        }
-
-        string[] members = [.. clan._leavingMembers.Keys];
-        foreach (string member in members)
-        {
-            new Account(member).Delete();
-        }
-
-        string membersMsg = string.Join(", ", members);
-        Console.WriteLine($"{membersMsg} left");
-    }
-
-    private static async Task BotReadyAsync()
-    {
-        await s_initTask;
-        Poll clanPoll = new(10000, 60000, PollAsync);
-        Poll raidPoll = new(0, 10000, PollRaidAsync);
-        await Task.WhenAll(clanPoll.RunAsync(), raidPoll.RunAsync());
-    }
+    private static void MembersLeft(Account[] leftMembers) => Console.WriteLine($"{string.Join(",", leftMembers.Select(a => a.Id))} left");
 
     private static async Task<Clan> GetClanAsync() => await s_client.Clans.GetClanAsync(ClanId);
 
-    private static async Task InitAsync()
+    // Poll clan members
+    private static async Task PollClanAsync()
     {
-        /* Try all tokens and init clan */
-        int counter = 1;
-        foreach (string token in Secrets.s_coc)
+        // Fetch data for comparison
+        s_clan = await GetClanAsync();
+        if (s_clan.MemberList == null)
         {
-            s_client = new(token);
-            try
-            {
-                Clan = ClanUtil.FromInit(await GetClanAsync());
-                Console.WriteLine($"Logged into CoC with token {counter}");
-
-                // Login successful, now try init raid
-                ClanCapitalRaidSeason season = await GetRaidSeasonAsync();
-                // If last raid happened within a week, we count it as valid
-                EventInitRaid(season);
-                s_raidSeason = season;
-
-                return;
-            }
-            catch (ClashOfClansException ex)
-            {
-                if (ex.Error.Reason.StartsWith("accessDenied"))
-                {
-                    counter++;
-                    continue;
-                }
-                throw;
-            }
+            throw new InvalidDataException("Fetched clan member list is null bruh");
         }
-        throw new InvalidDataException("All CoC tokens are invalid!");
-    }
+        IEnumerable<Account> accounts = Account.FetchAll();
 
-    private static async Task PollAsync()
-    {
-        Clan clan = await GetClanAsync();
+        // Some extra info
+        long nowTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        string[] memberIds = [.. s_clan.MemberList.Select(m => m.Tag)];
 
-        if (clan.MemberList == null)
+        /* NOTE: We must compare new clan info with db because the db now stores left members as well. */
+
+        /* Extract members and accounts changed */
+        Account[] leftMembers = [.. Account.FetchMembers().ExceptBy(memberIds, a => a.Id)];
+        foreach (Account account in leftMembers)
         {
-            return;
+            account.LeftTime = nowTime;
         }
 
-        ClanUtil clanUtil = ClanUtil.FromPoll(clan);
+        IEnumerable<ClanMember> newMembers = s_clan.MemberList.ExceptBy(accounts.Select(a => a.Id), m => m.Tag);
+        IEnumerable<Account> newJoinAccounts = newMembers.Select(m => new Account(m.Tag));
 
+        Account[] prevJoinAccounts = [.. Account.FetchLeft().IntersectBy(memberIds, a => a.Id)];
+        foreach (Account account in prevJoinAccounts)
+        {
+            account.LeftTime = null;
+        }
+
+        // Update db
+        Db.UpdateAll(leftMembers.Concat(prevJoinAccounts));
+        Db.InsertAll(newJoinAccounts);
+
+        // Dispatch events
+        if (leftMembers.Length > 0)
+        {
+            EventMemberLeft(leftMembers);
+        }
         CheckMembersJoined(clanUtil);
-        CheckMembersLeft(clanUtil);
         await Task.WhenAll([
             CheckDonationsAsync(clanUtil)
         ]);
-        Clan = clanUtil;
+
     }
 
     private static async Task PollRaidAsync()
@@ -225,7 +174,7 @@ internal static class Coc
         foreach (string tag in clan._existingMembers.Keys)
         {
             ClanMember current = clan._members[tag];
-            ClanMember previous = Clan._members[tag];
+            ClanMember previous = current; //Clan._members[tag];
 
             if (current.Donations > previous.Donations)
             {
@@ -249,7 +198,7 @@ internal static class Coc
         foreach (string tag in clan._existingMembers.Keys)
         {
             ClanMember current = clan._members[tag];
-            ClanMember previous = Clan._members[tag];
+            ClanMember previous = current; //Clan._members[tag];
 
             if (current.DonationsReceived > previous.DonationsReceived)
             {
@@ -323,19 +272,11 @@ internal static class Coc
         }
     }
 
-    internal static string? GetMemberId(string name)
-    {
-        ClanMember? result = Clan._clan.MemberList!.FirstOrDefault(m => m.Name == name);
-        return result?.Tag;
-    }
+    internal static ClanMember? TryGetMember(string id) => s_clan.MemberList!.FirstOrDefault(m => m.Tag == id);
 
-    internal static ClanMember? TryGetMember(string id)
-    {
-        Clan._members.TryGetValue(id, out ClanMember? result);
-        return result;
-    }
+    internal static ClanMember? TryGetMemberById(string name) => s_clan.MemberList!.FirstOrDefault(m => m.Name == name);
 
-    internal static ClanMember GetMember(string id) => Clan._members[id];
+    internal static ClanMember GetMember(string id) => s_clan.MemberList!.First(m => m.Tag == id);
 
     internal static HashSet<ClanCapitalRaidSeasonAttacker> GetRaidAttackers(ClanCapitalRaidSeason season)
     {
@@ -355,5 +296,42 @@ internal static class Coc
         }
 
         return set;
+    }
+
+    internal static async Task InitAsync()
+    {
+        /* Try all tokens and init clan */
+        int counter = 1;
+        foreach (string token in Secrets.s_coc)
+        {
+            s_client = new(token);
+            try
+            {
+                await GetClanAsync();
+                Console.WriteLine($"Logged into CoC with token {counter}");
+
+                // Login successful, now try init raid
+                ClanCapitalRaidSeason season = await GetRaidSeasonAsync();
+                // If last raid happened within a week, we count it as valid
+                EventInitRaid(season);
+                s_raidSeason = season;
+
+                // Wait for Discord ready and start polling tasks
+                await Dc.s_readyTcs.Task;
+                Poll clanPoll = new(10000, 60000, PollClanAsync);
+                Poll raidPoll = new(0, 10000, PollRaidAsync);
+                await Task.WhenAll(clanPoll.RunAsync(), raidPoll.RunAsync());
+            }
+            catch (ClashOfClansException ex)
+            {
+                if (ex.Error.Reason.StartsWith("accessDenied"))
+                {
+                    counter++;
+                    continue;
+                }
+                throw;
+            }
+        }
+        throw new InvalidDataException("All CoC tokens are invalid!");
     }
 }

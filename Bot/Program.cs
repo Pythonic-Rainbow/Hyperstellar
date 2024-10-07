@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 
 namespace Hyperstellar;
 
@@ -100,6 +101,20 @@ public static class Program
         }
     }
 
-    public static async Task Main() =>
-        await Task.WhenAll(Discord.Dc.InitAsync(), Clash.Coc.s_initTask, Sql.Db.InitAsync());
+    public static async Task Main()
+    {
+        List<Task> tasks = [Discord.Dc.InitAsync(), Clash.Coc.InitAsync(), Sql.Db.InitAsync()];
+        while (tasks.Count != 0)
+        {
+            Task completedTask = await Task.WhenAny(tasks);
+            if (completedTask.IsCompletedSuccessfully)
+            {
+                tasks.Remove(completedTask);
+            }
+            else
+            {
+                ExceptionDispatchInfo.Capture(completedTask.Exception!.InnerException!).Throw();
+            }
+        }
+    }
 }

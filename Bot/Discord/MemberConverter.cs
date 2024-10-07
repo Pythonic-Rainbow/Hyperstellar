@@ -61,15 +61,15 @@ internal sealed class MemberConverter : TypeConverter
         }
 
         // Check whether input is the name of a clan member
-        string? cocId = Coc.GetMemberId(input);
-        if (cocId != null)
+        ClanMember? member = Coc.TryGetMemberById(input);
+        if (member != null)
         {
-            Account sqlMember = Account.TryFetch(cocId)!;
+            Account sqlMember = Account.TryFetch(member.Tag)!;
             return TypeConverters.Success(sqlMember);
         }
 
         // Check whether input is the tag of a clan member
-        ClanMember? member = Coc.TryGetMember(input);
+        member = Coc.TryGetMember(input);
         if (member != null)
         {
             Account sqlMember = Account.TryFetch(input)!;

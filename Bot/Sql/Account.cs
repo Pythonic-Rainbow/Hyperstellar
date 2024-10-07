@@ -15,6 +15,10 @@ public class Account(string id) : DbObj<Account>
 
     internal static Account? TryFetch(string cocId) => s_db.Table<Account>().FirstOrDefault(m => m.Id == cocId);
 
+    internal static TableQuery<Account> FetchMembers() => s_db.Table<Account>().Where(a => a.LeftTime == null);
+
+    internal static TableQuery<Account> FetchLeft() => s_db.Table<Account>().Where(a => a.LeftTime != null);
+
     public void AddAlt(Account altMember)
     {
         Alt alt = new(altMember.Id, Id);
@@ -57,5 +61,19 @@ public class Account(string id) : DbObj<Account>
         Alt? alt = TryToAlt();
         string mainId = alt == null ? Id : alt.MainId;
         return s_db.Table<Main>().First(m => m.MainId == mainId);
+    }
+
+    public override string ToString()
+    {
+        string s = $"{Id} ";
+        if (LeftTime == null)
+        {
+            s += "Member";
+        }
+        else
+        {
+            s += $"Left at {LeftTime}";
+        }
+        return s;
     }
 }
