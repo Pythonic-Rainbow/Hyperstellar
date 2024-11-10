@@ -23,7 +23,7 @@ public sealed class MainRequirement(string mainId, long endTime) : DbObj<MainReq
 
     internal override int Update()
     {
-        List<MainRequirement>? result = s_db.Query<MainRequirement>("UPDATE MainRequirement SET Pass = ?, Donated = ?, Raided = ? WHERE MainId = ? AND EndTime = ?", Passed, Donated, Raided, MainId, EndTime);
+        List<MainRequirement>? result = s_db.Query<MainRequirement>("UPDATE MainRequirement SET Passed = ?, Donated = ?, Raided = ? WHERE MainId = ? AND EndTime = ?", Passed, Donated, Raided, MainId, EndTime);
         return result.Count;
     }
 

@@ -58,6 +58,8 @@ internal static class Phaser
         IEnumerable<IGrouping<long, MainRequirement>> eachLatestReq = MainRequirement.FetchEachLatest()
             .GroupBy(req => req.EndTime);
         long currentTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        // Store new req objects to be inserted later
+        List<MainRequirement> insertReqs = [];
 
         foreach (IGrouping<long, MainRequirement> reqGroup in eachLatestReq)
         {
@@ -66,20 +68,23 @@ internal static class Phaser
             {
                 foreach (MainRequirement req in reqGroup)
                 {
-                    req.Passed = Pass.Overdue;
-                    req.Update();
+                    insertReqs.Add(SetPass(req, Pass.Overdue));
                 }
 
                 continue;
             }
 
+            // Very rare - now has req to check, update their pass status
             if (reqGroup.Key == currentTime)
             {
-
+                foreach (MainRequirement req in reqGroup)
+                {
+                    insertReqs.Add(CheckReq(req));
+                }
             }
         }
 
-        Task.Delay(-1);
+        Task.Delay(-1).Wait();
 
         IEnumerable<IGrouping<long, Main>> donationGroups = Main.FetchAll()
             .GroupBy(static d => d.Checked)
@@ -118,6 +123,25 @@ internal static class Phaser
         }
         DebugQueue();
         Console.WriteLine("[Donate25] Inited");
+    }
+
+    /// Sets a req object's pass status, execute Update and returns the next due req.
+    private static MainRequirement SetPass(MainRequirement req, Pass pass)
+    {
+        req.Passed = pass;
+        req.Update();
+        return new(req.MainId, req.EndTime + CheckPeriod);
+    }
+
+    /// When a req is due, use this function to determine whether it passed and failed.
+    /// It will also call SetPass()
+    private static MainRequirement CheckReq(MainRequirement req)
+    {
+        bool donate25 = req.Donated >= 25;
+        bool raid1 = req.Raided > 0;
+
+        bool passed = donate25 || raid1;
+        return SetPass(req, passed ? Pass.Passed : Pass.Failed);
     }
 
     private static void AltAdded(Main altMain, Main mainMain)
