@@ -14,7 +14,7 @@ public sealed class Alt(string altId, string mainId) : DbObj<Alt>
 
     public TableQuery<Alt> GetOtherAlts() => FetchAll().Where(a => a.MainId == MainId && a.AltId != AltId);
 
-    public Main GetMain() => Main.FetchAll().First(m => m.MainId == MainId);
+    public Main GetMain() => Main.FetchAll().First(m => m.AccountId == MainId);
 
     public bool UpdateMain(string id)
     {

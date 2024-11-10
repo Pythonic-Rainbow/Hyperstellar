@@ -19,8 +19,6 @@ internal static class Phaser
 
     static Phaser()
     {
-        Coc.EventMemberJoined += MemberAdded;
-        Coc.EventDonatedMaxFlow += DonationChanged;
         Coc.EventInitRaid += InitRaid;
         Coc.EventRaidCompleted += ProcessRaid;
         Dc.EventBotReady += BotReadyAsync;
@@ -56,6 +54,33 @@ internal static class Phaser
 
     private static void Init()
     {
+        // For each MainID in table MainRequirement, get the row with the latest EndTime
+        IEnumerable<IGrouping<long, MainRequirement>> eachLatestReq = MainRequirement.FetchEachLatest()
+            .GroupBy(req => req.EndTime);
+        long currentTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+        foreach (IGrouping<long, MainRequirement> reqGroup in eachLatestReq)
+        {
+            // If overdue, update the req
+            if (reqGroup.Key < currentTime)
+            {
+                foreach (MainRequirement req in reqGroup)
+                {
+                    req.Passed = Pass.Overdue;
+                    req.Update();
+                }
+
+                continue;
+            }
+
+            if (reqGroup.Key == currentTime)
+            {
+
+            }
+        }
+
+        Task.Delay(-1);
+
         IEnumerable<IGrouping<long, Main>> donationGroups = Main.FetchAll()
             .GroupBy(static d => d.Checked)
             .OrderBy(static g => g.Key);
@@ -71,7 +96,7 @@ internal static class Phaser
             {
                 foreach (Main main in group)
                 {
-                    expiredNode._ids.Add(main.MainId);
+                    expiredNode._ids.Add(main.AccountId);
                     main.Checked = expiredNode._checkTime;
                     main.Donated = 0;
                     main.Update();
@@ -82,7 +107,7 @@ internal static class Phaser
                 Node node = new(group.Key);
                 foreach (Main main in group)
                 {
-                    node._ids.Add(main.MainId);
+                    node._ids.Add(main.AccountId);
                 }
                 s_queue.Enqueue(node);
             }
@@ -95,20 +120,9 @@ internal static class Phaser
         Console.WriteLine("[Donate25] Inited");
     }
 
-    private static void DonationChanged(IEnumerable<Tuple<string, int>> donations)
-    {
-        foreach ((string tag, int donated) in donations)
-        {
-            Main main = new Account(tag).GetEffectiveMain();
-            main.Donated += (uint)donated;
-            Console.WriteLine($"[Donate25] {tag} {donated}");
-            main.Update();
-        }
-    }
-
     private static void AltAdded(Main altMain, Main mainMain)
     {
-        string altId = altMain.MainId, mainId = mainMain.MainId;
+        string altId = altMain.AccountId, mainId = mainMain.AccountId;
         Console.WriteLine($"[Donate25] Removing {altId} -> {mainId} (addalt)");
         Node? node = s_queue.FirstOrDefault(n => n._ids.Remove(altId));
         if (node != null)
@@ -118,49 +132,6 @@ internal static class Phaser
             mainMain.Donated += altMain.Donated;
             Console.WriteLine($"[Donate25] Added {mainId} because it replaced {altId} as main");
         }
-    }
-
-    private static void MemberAdded(ClanMember member, Main main)
-    {
-        main.Checked = GetNowNextTime();
-        string id = member.Tag;
-        Console.WriteLine($"[Donate25] Adding {id}");
-        long targetTime = GetNowNextTime();
-        Node node = s_queue.Last();  // We expect at least 1 member in the db
-        if (targetTime == node._checkTime)
-        {
-            node._ids.Add(id);
-            Console.WriteLine($"[Donate25] Added {id} in {node._checkTime} (last node)");
-        }
-        else if (targetTime > node._checkTime)
-        {
-            node = new(targetTime);
-            node._ids.Add(id);
-            s_queue.Enqueue(node);
-            Console.WriteLine($"[Donate25] Added {id} in {node._checkTime} (new node). New queue len: {s_queue.Count}");
-        }
-        else
-        {
-            throw new InvalidOperationException($"New member targetTime < last node check time. targetTime: {targetTime} Last node checktime: {node._checkTime}");
-        }
-    }
-
-    private static void MemberLeft(Account[] leftMembers)
-    {
-        /*
-        string id = member.Tag;
-        Console.WriteLine($"[Donate25] Removing {id} -> {newMainId}");
-        Node? node = s_queue.FirstOrDefault(n => n._ids.Remove(id));
-        if (node != null)
-        {
-            Console.WriteLine($"[Donate25] Removed {id} in {node._checkTime}");
-            if (newMainId != null)
-            {
-                node._ids.Add(newMainId);
-                Console.WriteLine($"[Donate25] Added {newMainId} because it replaced {id} as main");
-            }
-        }
-        */
     }
 
     private static void InitRaid(ClanCapitalRaidSeason season)

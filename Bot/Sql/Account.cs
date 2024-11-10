@@ -48,9 +48,9 @@ public class Account(string id) : DbObj<Account>
 
     public Alt? TryToAlt() => s_db.Table<Alt>().FirstOrDefault(a => a.AltId == Id);
 
-    public Main? TryToMain() => s_db.Table<Main>().FirstOrDefault(m => m.MainId == Id);
+    public Main? TryToMain() => s_db.Table<Main>().FirstOrDefault(m => m.AccountId == Id);
 
-    public Main ToMain() => s_db.Table<Main>().First(m => m.MainId == Id);
+    public Main ToMain() => s_db.Table<Main>().First(m => m.AccountId == Id);
 
     public TableQuery<Alt> GetAltsByMain() => s_db.Table<Alt>().Where(a => a.MainId == Id);
 
@@ -60,7 +60,7 @@ public class Account(string id) : DbObj<Account>
     {
         Alt? alt = TryToAlt();
         string mainId = alt == null ? Id : alt.MainId;
-        return s_db.Table<Main>().First(m => m.MainId == mainId);
+        return s_db.Table<Main>().First(m => m.AccountId == mainId);
     }
 
     public override string ToString()

@@ -31,7 +31,7 @@ public abstract class Db
 
     internal int Delete() => s_db.Delete(this);
 
-    internal int Update() => s_db.Update(this);
+    internal virtual int Update() => s_db.Update(this);
 
 }
 

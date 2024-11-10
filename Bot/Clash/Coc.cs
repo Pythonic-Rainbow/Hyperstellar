@@ -9,6 +9,21 @@ using QuikGraph.Algorithms.MaximumFlow;
 
 namespace Hyperstellar.Clash;
 
+internal class DonRecv(int donated, int received)
+{
+    internal int _donated = donated;
+    internal int _received = received;
+
+    public static DonRecv operator +(DonRecv dr1, DonRecv dr2) =>
+        new(dr1._donated + dr2._donated, dr1._received + dr2._received);
+
+    internal void Add(DonRecv dr)
+    {
+        _donated += dr._donated;
+        _received += dr._received;
+    }
+}
+
 internal static class Coc
 {
     private sealed class RaidAttackerComparer : IEqualityComparer<ClanCapitalRaidSeasonAttacker>
@@ -17,17 +32,22 @@ internal static class Coc
         public int GetHashCode(ClanCapitalRaidSeasonAttacker obj) => obj.Tag.GetHashCode();
     }
 
+    private sealed class ClanMemberComparer : IEqualityComparer<ClanMember>
+    {
+        public bool Equals(ClanMember? x, ClanMember? y) => x!.Tag == y!.Tag;
+        public int GetHashCode(ClanMember obj) => obj.Tag.GetHashCode();
+    }
+
     private const string ClanId = "#2QU2UCJJC"; // 2G8LP8PVV
     private static ClashOfClansClient s_client;
     private static ClanCapitalRaidSeason s_raidSeason;
     internal static Clan s_clan;
-    internal static event Action<IEnumerable<Account>> EventMemberJoined;
+    internal static event Action<Account[]> EventMemberJoined;
     internal static event Action<Account[]> EventMemberRejoined;
     internal static event Action<Account[]> EventMemberLeft;
     internal static event Action<ClanCapitalRaidSeason> EventInitRaid;
     internal static event Action<ClanCapitalRaidSeason> EventRaidCompleted;
-    internal static event Action<IEnumerable<Tuple<string, int>>> EventDonatedMaxFlow;
-    internal static event Func<IEnumerable<Tuple<string, int>>, IEnumerable<Tuple<string, int>>, Task> EventDonated;
+    internal static event Func<IDictionary<string, DonRecv>, Task> EventDonated;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     static Coc()
@@ -40,9 +60,110 @@ internal static class Coc
 
     private static void MembersLeft(Account[] leftMembers) => Console.WriteLine($"{string.Join(",", leftMembers.Select(a => a.Id))} left");
 
-    private static void MembersRejoined(Account[] leftMembers) => Console.WriteLine($"{string.Join(",", leftMembers.Select(a => a.Id))} rejoined");
+    private static void MembersRejoined(Account[] rejoinedMembers) => Console.WriteLine($"{string.Join(",", rejoinedMembers.Select(a => a.Id))} rejoined");
 
-    private static void MembersJoined(IEnumerable<Account> leftMembers) => Console.WriteLine($"{string.Join(",", leftMembers.Select(a => a.Id))} joined");
+    private static void MembersJoined(Account[] newJoinedMembers) => Console.WriteLine($"{string.Join(",", newJoinedMembers.Select(a => a.Id))} joined");
+
+    private static Dictionary<string, DonRecv> DonationMaxFlow(Dictionary<string, DonRecv> original)
+    {
+        Dictionary<string, DonRecv> result = [];
+
+        // Fold alts into main
+        foreach ((string tag, DonRecv dr) in original)
+        {
+            Main effectiveMain = new Account(tag).GetEffectiveMain();
+            if (!result.TryAdd(effectiveMain.AccountId, dr))
+            {
+                result[effectiveMain.AccountId].Add(dr);
+            }
+        }
+
+        // Init graph
+        AdjacencyGraph<string, TaggedEdge<string, int>> graph = new(false);
+        graph.AddVertexRange(["s", "t"]);
+
+        // Add donation nodes
+        List<string> donTags = []; // List of tags that have donated
+        foreach ((string tag, DonRecv dr) in result)
+        {
+            if (dr._donated > 0)
+            {
+                donTags.Add(tag);
+                graph.AddVertex(tag);
+                graph.AddEdge(new("s", tag, dr._donated));
+            }
+        }
+
+        // Add receive nodes
+        foreach ((string tag, DonRecv dr) in result)
+        {
+            if (dr._received > 0)
+            {
+                string nodeName = 'r' + tag;  // Receive node names will be 'r#XXX'
+                graph.AddVertex(nodeName);
+
+                // Connect all donation nodes except same tag to this receive node
+                foreach (string donTag in donTags.Where(t => t != tag))
+                {
+                    graph.AddEdge(new(donTag, nodeName, dr._received));
+                }
+
+                // Connect this receive node to the sink
+                graph.AddEdge(new(nodeName, "t", dr._received));
+            }
+        }
+
+        // Compute MaxFlow
+        ReversedEdgeAugmentorAlgorithm<string, TaggedEdge<string, int>> reverseAlgo = new(
+            graph,
+            (s, t) =>
+            {
+                TaggedEdge<string, int> e = graph.Edges.First(e => e.Source == t && e.Target == s);
+                return new TaggedEdge<string, int>(s, t, e.Tag);
+            });
+        reverseAlgo.AddReversedEdges();
+
+        EdmondsKarpMaximumFlowAlgorithm<string, TaggedEdge<string, int>> maxFlowAlgo = new(
+            graph,
+            e => e.Tag, // capacities
+            (_, _) => graph.Edges.First(), // EdgeFactory (isn't actually used by the algo)
+            reverseAlgo)
+        { Source = "s", Sink = "t" };
+        maxFlowAlgo.Compute();
+
+        /* Update the result dict.
+        * DonNodes that may appear here must already been existed in result dict and _donated > 0 cuz
+        * otherwise it won't be in the graph in the first place.
+        * So we don't need to clear result dict first.
+        */
+
+        // Update donations
+        foreach ((TaggedEdge<string, int> edge, double capa) in
+                 maxFlowAlgo.ResidualCapacities.Where(ed => ed.Key.Source == "s"))
+        {
+            int donated = (int)(edge.Tag - capa);
+            result[edge.Target]._donated = donated >= 0 ? donated
+                : throw new InvalidDataException($"After MaxFlow, donation < 0! ({edge.Target} {donated})");
+        }
+
+        // Update receive
+        foreach ((TaggedEdge<string, int> edge, double capa) in
+                 maxFlowAlgo.ResidualCapacities.Where(ed => ed.Key.Target == "t"))
+        {
+            int received = (int)(edge.Tag - capa);
+            string receiverTag = edge.Source[1..]; // Remove first char because edge.Source is "r#XXX"
+            result[receiverTag]._received = received >= 0 ? received
+                : throw new InvalidDataException($"After MaxFlow, donation < 0! ({edge.Target} {received})");
+        }
+
+        // Remove DonRecvs without data
+        foreach ((string key, DonRecv _) in result.Where(kvp => kvp.Value is { _donated: 0, _received: 0 }))
+        {
+            result.Remove(key);
+        }
+
+        return result;
+    }
 
     private static async Task<Clan> GetClanAsync() => await s_client.Clans.GetClanAsync(ClanId);
 
@@ -50,6 +171,7 @@ internal static class Coc
     private static async Task PollClanAsync()
     {
         // Fetch data for comparison
+        Clan oldClan = s_clan;
         s_clan = await GetClanAsync();
         if (s_clan.MemberList == null)
         {
@@ -61,17 +183,36 @@ internal static class Coc
         long nowTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         string[] memberIds = [.. s_clan.MemberList.Select(m => m.Tag)];
 
-        /* NOTE: We must compare new clan info with db because the db now stores left members as well. */
+        /* TODO:
+         We currently compare newClan with db for each poll.
+         Technically we only need to compare with db during Coc.InitAsync because
+         for each poll later, db should be in sync with previous s_clan.
+
+         Create a ClanDelta class that will be instantiated in CoC.InitAsync with a single Clan arg.
+         In the ctor, we compare db with this first clan data.
+         For each poll, clanDelta.Update(newClan)
+
+         Try to reduce amount of SQL queries in order to save access time
+         */
+
+        /* TODO:
+        If db access time for this ENTIRE function is too long,
+        we can pass-by-ref newJoinAccounts, prevJoinAccounts and leftAccounts to those consumer functions
+        and ONLY CALl db.update / db.insert in THIS function.
+        Eliminates multiple db operations in consumer functions.
+        Probably means that these consumer functions can't be async tho
+         */
 
         /* Extract members and accounts changed */
         Account[] leftMembers = [.. Account.FetchMembers().ExceptBy(memberIds, a => a.Id)];
+
         foreach (Account account in leftMembers)
         {
             account.LeftTime = nowTime;
         }
 
         IEnumerable<ClanMember> newMembers = s_clan.MemberList.ExceptBy(accounts.Select(a => a.Id), m => m.Tag);
-        IEnumerable<Account> newJoinAccounts = newMembers.Select(m => new Account(m.Tag));
+        Account[] newJoinAccounts = [.. newMembers.Select(m => new Account(m.Tag))];
 
         Account[] prevJoinAccounts = [.. Account.FetchLeft().IntersectBy(memberIds, a => a.Id)];
         foreach (Account account in prevJoinAccounts)
@@ -92,14 +233,13 @@ internal static class Coc
         {
             EventMemberRejoined(prevJoinAccounts);
         }
-        if (newJoinAccounts.Any())
+        if (newJoinAccounts.Length > 0)
         {
             EventMemberJoined(newJoinAccounts);
         }
-        await Task.WhenAll([
-            CheckDonationsAsync(clanUtil)
-        ]);
 
+        // Clan instance comparison tasks
+        await CheckDonationsAsync(oldClan);
     }
 
     private static async Task PollRaidAsync()
@@ -154,115 +294,100 @@ internal static class Coc
         return seasons.First();
     }
 
-    private static async Task CheckDonationsAsync(ClanUtil clan)
+    private static async Task CheckDonationsAsync(Clan oldClan)
     {
         long currentTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        Dictionary<string, Donation> donations = [];
 
-        List<Tuple<string, int>> donDelta = [], recDelta = [];
-        Dictionary<string, string> accToMainAcc = [];
-        AdjacencyGraph<string, TaggedEdge<string, int>> graph = new(false);
-        graph.AddVertexRange(["s", "t"]);
+        /* TODO:
+         After the ClanDelta code from above is done, for all new members,
+         process their MainRequirement and Donation in ClanDelta ctor.
+         Instead of the db triggers currently used, programatically insert Account, Main and MainReq instances
+         because we can set MainReq.Donated etc. before inserting.
+         */
 
-        foreach (string tag in clan._existingMembers.Keys)
+        /* TODO: IMPORTANT
+         Insert all member donations, then MaxFlow all donations and update MainReq
+         */
+
+        static DonRecv ExtractDonations(ClanMember current, ClanMember previous)
         {
-            ClanMember current = clan._members[tag];
-            ClanMember previous = current; //Clan._members[tag];
+            int donated = current.Donations >= previous.Donations
+                ? current.Donations - previous.Donations : current.Donations;
+            int received = current.DonationsReceived >= previous.DonationsReceived
+                ? current.DonationsReceived - previous.DonationsReceived : current.DonationsReceived;
+            return new DonRecv(donated, received);
+        }
 
-            if (current.Donations > previous.Donations)
+        // Get new and existing members
+        ClanMember[] newMembers = [.. s_clan.MemberList!.Except(oldClan.MemberList!, new ClanMemberComparer())];
+        var existingMembers = s_clan.MemberList!.Join(
+            oldClan.MemberList!,
+            current => current.Tag,
+            previous => previous.Tag,
+            (current, previous) => new { Current = current, Previous = previous }
+        ).ToArray();
+
+        // Extract DonRecv from members
+        Dictionary<string, DonRecv> donRecvs = [];
+        foreach (ClanMember member in newMembers)
+        {
+            int donated = member.Donations;
+            int received = member.DonationsReceived;
+            if (donated > 0 || received > 0)
             {
-                int donated = current.Donations - previous.Donations;
-
-                Donation donation = new(currentTime, tag)
-                {
-                    Donated = donated
-                };
-                donations[tag] = donation;
-
-                donDelta.Add(new(current.Tag, donated));
-
-                graph.AddVertex(current.Tag);
-                graph.AddEdge(new("s", current.Tag, donated));
-
-                accToMainAcc.TryAdd(current.Tag, new Account(current.Tag).GetEffectiveMain().MainId);
+                donRecvs[member.Tag] = new DonRecv(member.Donations, member.DonationsReceived);
+            }
+        }
+        foreach (var currentPrevious in existingMembers)
+        {
+            ClanMember current = currentPrevious.Current;
+            ClanMember previous = currentPrevious.Previous;
+            string tag = current.Tag;
+            DonRecv dr = ExtractDonations(current, previous);
+            if (dr._donated > 0 || dr._received > 0)  // Only add if there is a change
+            {
+                donRecvs[tag] = dr;
             }
         }
 
-        foreach (string tag in clan._existingMembers.Keys)
+        // Ret if DonRecv empty
+        if (donRecvs.Count == 0)
         {
-            ClanMember current = clan._members[tag];
-            ClanMember previous = current; //Clan._members[tag];
-
-            if (current.DonationsReceived > previous.DonationsReceived)
-            {
-                string vertexName = $"#{current.Tag}"; // Double # for received node
-                int received = current.DonationsReceived - previous.DonationsReceived;
-                if (donations.TryGetValue(tag, out Donation? value))
-                {
-                    value.Received = received;
-                }
-                else
-                {
-                    Donation donation = new(currentTime, tag)
-                    {
-                        Received = received
-                    };
-
-                    donations[tag] = donation;
-                }
-
-                recDelta.Add(new(current.Tag, received));
-                graph.AddVertex(vertexName);
-                graph.AddEdge(new(vertexName, "t", received));
-
-                foreach (string donor in accToMainAcc
-                             .Where(kv => kv.Value != new Account(current.Tag).GetEffectiveMain().MainId)
-                             .Select(kv => kv.Key))
-                {
-                    graph.AddEdge(new(donor, vertexName, received));
-                }
-            }
+            return;
         }
 
-        Db.InsertAll(donations.Values);
-
-        if (graph.VertexCount > 2)
+        // Generate the Donation records and insert
+        IEnumerable<Donation> donations = donRecvs.Select(kvp =>
         {
-            ReversedEdgeAugmentorAlgorithm<string, TaggedEdge<string, int>> reverseAlgo = new(
-                graph,
-                (s, t) =>
-                {
-                    TaggedEdge<string, int> e = graph.Edges.First(e => e.Source == t && e.Target == s);
-                    return new TaggedEdge<string, int>(s, t, e.Tag);
-                });
-            reverseAlgo.AddReversedEdges();
+            (string tag, DonRecv dr) = kvp;
+            return new Donation(currentTime, tag, dr._donated, dr._received);
+        });
+        Db.InsertAll(donations);
 
-            EdmondsKarpMaximumFlowAlgorithm<string, TaggedEdge<string, int>> maxFlowAlgo = new(
-                graph,
-                e => e.Tag, // capacities
-                (_, _) => graph.Edges.First(), // EdgeFactory (isn't actually used by the algo)
-                reverseAlgo)
-            { Source = "s", Sink = "t" };
-            maxFlowAlgo.Compute();
+        // MaxFlow DonRecv
+        Dictionary<string, DonRecv> maxFlowDonRecvs = DonationMaxFlow(donRecvs);
 
-            List<Tuple<string, int>> maxFlowDonations = [];
-            foreach ((TaggedEdge<string, int> edge, double capa) in
-                     maxFlowAlgo.ResidualCapacities.Where(ed => ed.Key.Source == "s"))
-            {
-                int donated = (int)(edge.Tag - capa);
-                if (donated > 0)
-                {
-                    maxFlowDonations.Add(new(edge.Target, donated));
-                }
-            }
-
-            if (maxFlowDonations.Count > 0)
-            {
-                EventDonatedMaxFlow(maxFlowDonations);
-            }
-
-            await EventDonated(donDelta, recDelta);
+        // Ret if MaxFlowDonRecv empty
+        if (maxFlowDonRecvs.Count == 0)
+        {
+            return;
         }
+
+        // Fetch MainReq of all the mains that have donated in MaxFlow graph
+        MainRequirement[] maxFlowMainReq = [.. MainRequirement.FetchLatest(maxFlowDonRecvs
+            .Where(kvp => kvp.Value._donated > 0)
+            .Select(kvp => kvp.Key)
+        )];
+
+        // Update the MainReqs
+        foreach (MainRequirement mainReq in maxFlowMainReq)
+        {
+            DonRecv dr = maxFlowDonRecvs[mainReq.MainId];
+            mainReq.Donated += dr._donated;
+            mainReq.Update();
+        }
+
+        await EventDonated(donRecvs);
     }
 
     internal static ClanMember? TryGetMember(string id) => s_clan.MemberList!.FirstOrDefault(m => m.Tag == id);
@@ -300,7 +425,7 @@ internal static class Coc
             s_client = new(token);
             try
             {
-                await GetClanAsync();
+                s_clan = await GetClanAsync();
                 Console.WriteLine($"Logged into CoC with token {counter}");
 
                 // Login successful, now try init raid

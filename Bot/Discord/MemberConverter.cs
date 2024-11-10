@@ -32,7 +32,7 @@ internal sealed class MemberConverter : TypeConverter
             }
 
             // TODO: REMOVE THIS AFTER DB REDESIGN - SKIPPING THE CHECK BELOW BECUZ FOR NOW, IN DB = MUST BE IN CLAN
-            Account sqlMember = Account.TryFetch(main.MainId)!;
+            Account sqlMember = Account.TryFetch(main.AccountId)!;
             return TypeConverters.Success(sqlMember);
 
             /*
